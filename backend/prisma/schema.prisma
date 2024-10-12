@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  keys       Key[]
+  sensorData SensorData[]
+
+  @@map("users")
+}
+
+model Key {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  userId     String   @map("user_id")
+  /// 1 - Client
+  /// 2 - Server
+  sourceType Int      @map("source_type")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("keys")
+}
+
+model SensorData {
+  id        Int      @id @default(autoincrement())
+  /// 1 - Temperature
+  /// 2 - GPS
+  sensor    Int
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([sensor])
+  @@map("sensor_data")
+}
