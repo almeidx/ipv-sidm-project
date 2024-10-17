@@ -39,7 +39,18 @@ export const registerUser: FastifyPluginAsyncZod = async (app) => {
 				},
 			});
 
-			return user;
+			const payload = {
+				email: user.email,
+				name: user.name,
+			}
+
+			const token = app.jwt.sign(payload, {
+				sub: user.id,
+				expiresIn: "1h",
+			});
+			
+
+			return { token }
 		},
 	);
 };
