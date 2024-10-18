@@ -41,16 +41,31 @@ model Key {
 
 model SensorData {
   id        Int      @id @default(autoincrement())
-  /// 1 - Temperature
-  /// 2 - GPS
-  sensor    Int
   value     String
   createdAt DateTime @default(now()) @map("created_at")
   userId    String   @map("user_id")
+  sensorId  String   @map("sensor_id")
 
-  user User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  sensor Sensor @relation(fields: [sensorId], references: [id])
 
   @@index([userId])
-  @@index([sensor])
+  @@index([sensorId])
   @@map("sensor_data")
+}
+
+model Sensor {
+  id        String   @id @default(uuid())
+  name      String
+  // SQLite doesn't support enums
+  /// 1 - Temperature (ºC)
+  /// 2 - Coordinates (lat, long)
+  /// 3 - Number
+  /// 4 - String
+  valueType Int      @map("value_type")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sensorData SensorData[]
+
+  @@map("sensors")
 }

@@ -1,0 +1,15 @@
+meta {
+  name: Get Sensor Data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/sensors/:sensorId/data
+  body: none
+  auth: none
+}
+
+params:path {
+  sensorId: 8d92b402-7743-4aaa-a31e-3fa58dc38154
+}

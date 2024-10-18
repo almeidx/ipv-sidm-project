@@ -1,35 +1,48 @@
 import { fastifyCors } from "@fastify/cors";
 import { fastifyJwt } from "@fastify/jwt";
 import { fastifySensible } from "@fastify/sensible";
+import { fastifyWebsocket } from "@fastify/websocket";
 import { fastify } from "fastify";
 import { type ZodTypeProvider, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { env } from "#lib/env.ts";
 import { getStatus } from "#routes/get-status.ts";
-import { registerUser } from "#routes/register-user.ts";
-import { loginUser } from "#routes/login-user.ts";
-import {receiveDataSocket} from "#routes/socket.ts";
-import {fastifyWebsocket} from '@fastify/websocket';
+import { createSensor } from "#routes/sensors/create-sensor.ts";
+import { getSensorData } from "#routes/sensors/data/get-sensor-data.ts";
+import { getSensorsData } from "#routes/sensors/data/get-sensors-data.ts";
+import { getSensors } from "#routes/sensors/get-sensors.ts";
+import { login } from "#routes/users/login.ts";
+import { signUp } from "#routes/users/sign-up.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
-
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
-
 
 await app.register(fastifySensible);
 await app.register(fastifyCors);
 await app.register(fastifyJwt, { secret: env.JWT_SECRET });
 await app.register(fastifyWebsocket, {
-    options: { maxPayload: 1048576 }
-  });
+	options: {
+		maxPayload: 1024 * 1024, // 1mb
+	},
+});
 
+await app.register(async (instance) => {
+	// sensors/data
+	await instance.register(getSensorData);
+	await instance.register(getSensorsData);
 
+	// sensors
+	await instance.register(getSensors);
+	await instance.register(createSensor);
 
-await app.register(getStatus);
-await app.register(registerUser);
-await app.register(loginUser);
-await app.register(receiveDataSocket);
+	// users
+	await instance.register(signUp);
+	await instance.register(login);
+
+	// await instance.register(receiveDataSocket);
+	await instance.register(getStatus);
+});
 
 await app.listen({ port: 3333 });
 

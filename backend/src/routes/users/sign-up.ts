@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "#lib/env.ts";
 import { prisma } from "#lib/prisma.ts";
 
-export const registerUser: FastifyPluginAsyncZod = async (app) => {
+export const signUp: FastifyPluginAsyncZod = async (app) => {
 	app.post(
 		"/register",
 		{
@@ -14,6 +14,9 @@ export const registerUser: FastifyPluginAsyncZod = async (app) => {
 					email: z.string().email(),
 					password: z.string().min(12).max(128),
 				}),
+				response: {
+					201: z.object({ token: z.string() }),
+				},
 			},
 		},
 		async (request, reply) => {
@@ -42,15 +45,16 @@ export const registerUser: FastifyPluginAsyncZod = async (app) => {
 			const payload = {
 				email: user.email,
 				name: user.name,
-			}
+			};
 
 			const token = app.jwt.sign(payload, {
 				sub: user.id,
 				expiresIn: "1h",
 			});
-			
 
-			return { token }
+			reply.statusCode = 201;
+
+			return { token };
 		},
 	);
 };
