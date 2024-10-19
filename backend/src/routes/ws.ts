@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
-export const receiveDataSocket: FastifyPluginAsyncZod = async (app) => {
-	app.get("/socket", { websocket: true }, (connection, req) => {
+export const webSocketRoute: FastifyPluginAsyncZod = async (app) => {
+	app.get("/ws", { websocket: true }, (connection, req) => {
 		console.log("Client connected");
 
 		connection.socket.on("message", () => {

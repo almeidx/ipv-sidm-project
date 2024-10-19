@@ -1,5 +1,4 @@
 import { Image, Platform, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedButton } from "@/components/ui/ThemedButton";
 import { ThemedText } from "@/components/ui/ThemedText";
@@ -7,19 +6,56 @@ import { ThemedTextInput } from "@/components/ui/ThemedTextInput";
 import { ThemedView } from "@/components/ui/ThemedView";
 import { Link } from "expo-router";
 import { useState } from "react";
+import { toast } from "sonner-native";
+import { API_URL } from "@/utils/constants";
+import { z } from "zod";
+
+const schema = z.object({
+	email: z.string().email({ message: "Enter a valid email address" }),
+	password: z
+		.string()
+		.min(12, { message: "Password must be at least 12 characters long" })
+		.max(128, { message: "Password must be at most 128 characters long" }),
+})
 
 export default function LoginScreen() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
 	async function handleLogin() {
-		console.log("Creating account...");
+		const result = schema.safeParse({ email, password });
+		if (!result.success) {
+			toast.error(result.error.errors[0].message);
+			return;
+		}
+
+		console.log(result.data);
+
+		const response = await fetch(`${API_URL}/auth/login`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(result.data),
+		});
+
+		if (!response.ok) {
+			console.error("Failed to login", response);
+			toast.error("Failed to login");
+			return;
+		}
+
+		const { token } = (await response.json()) as { token: string };
+
+		console.log("Logged in successfully", token);
+
+		toast.success("Logged in successfully");
 	}
 
 	return (
 		<ParallaxScrollView
 			headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-			headerImage={<Image source={require("@/assets/images/partial-react-logo.png")} style={styles.reactLogo} />}
+			headerImage={<Image source={require("~/assets/images/partial-react-logo.png")} style={styles.reactLogo} />}
 		>
 			<ThemedView style={styles.titleContainer}>
 				<ThemedText type="title">Login</ThemedText>

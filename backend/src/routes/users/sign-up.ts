@@ -6,7 +6,7 @@ import { prisma } from "#lib/prisma.ts";
 
 export const signUp: FastifyPluginAsyncZod = async (app) => {
 	app.post(
-		"/register",
+		"/auth/register",
 		{
 			schema: {
 				body: z.object({

@@ -52,8 +52,8 @@ export default function SensorsScreen() {
 						</ThemedText>
 					</ThemedView>
 				)}
-				keyExtractor={(item) => item.id.toString()}
-				onItemPress={(item) => console.log("Pressed:", item.name)}
+				keyExtractor={(item) => item.id}
+			// onItemPress={(item) => console.log("Pressed:", item.name)}
 			/>
 		</ParallaxScrollView>
 	);

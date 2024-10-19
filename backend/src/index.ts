@@ -12,11 +12,17 @@ import { getSensorsData } from "#routes/sensors/data/get-sensors-data.ts";
 import { getSensors } from "#routes/sensors/get-sensors.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
+import { webSocketRoute } from "#routes/ws.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+app.setErrorHandler((error, request, reply) => {
+	console.error(error);
+	reply.send({ error: error.message });
+});
 
 await app.register(fastifySensible);
 await app.register(fastifyCors);
@@ -40,10 +46,10 @@ await app.register(async (instance) => {
 	await instance.register(signUp);
 	await instance.register(login);
 
-	// await instance.register(receiveDataSocket);
 	await instance.register(getStatus);
+	await instance.register(webSocketRoute);
 });
 
-await app.listen({ port: 3333 });
+await app.listen({ host: '0.0.0.0', port: 3333 });
 
 console.log("Server is running on port 3333");

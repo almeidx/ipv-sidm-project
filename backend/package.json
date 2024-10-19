@@ -7,6 +7,10 @@
 		"#utils/*": "./src/utils/*"
 	},
 	"scripts": {
+		"build": "tsc",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate deploy",
+		"db:migration": "prisma migrate dev",
 		"fmt": "biome check --write",
 		"postinstall": "prisma generate",
 		"lint": "biome check",

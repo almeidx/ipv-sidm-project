@@ -55,17 +55,22 @@ model SensorData {
 }
 
 model Sensor {
-  id        String   @id @default(uuid())
-  name      String
-  // SQLite doesn't support enums
-  /// 1 - Temperature (ºC)
-  /// 2 - Coordinates (lat, long)
-  /// 3 - Number
-  /// 4 - String
-  valueType Int      @map("value_type")
-  createdAt DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  name         String
+  sensorTypeId Int      @map("sensor_type_id")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   sensorData SensorData[]
+  sensorType SensorType   @relation(fields: [sensorTypeId], references: [id])
 
   @@map("sensors")
+}
+
+model SensorType {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  sensors Sensor[]
+
+  @@map("sensor_types")
 }
