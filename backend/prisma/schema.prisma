@@ -18,8 +18,7 @@ model User {
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  keys       Key[]
-  sensorData SensorData[]
+  keys Key[]
 
   @@map("users")
 }
@@ -43,13 +42,10 @@ model SensorData {
   id        Int      @id @default(autoincrement())
   value     String
   createdAt DateTime @default(now()) @map("created_at")
-  userId    String   @map("user_id")
   sensorId  String   @map("sensor_id")
 
-  user   User   @relation(fields: [userId], references: [id])
   sensor Sensor @relation(fields: [sensorId], references: [id])
 
-  @@index([userId])
   @@index([sensorId])
   @@map("sensor_data")
 }
