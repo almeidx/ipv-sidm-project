@@ -25,11 +25,6 @@ export async function getSensorsDataImpl({
 					id: true,
 					value: true,
 					createdAt: true,
-					user: {
-						select: {
-							name: true,
-						},
-					},
 				},
 				where: {
 					createdAt: {

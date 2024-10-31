@@ -26,9 +26,6 @@ export const getSensorData: FastifyPluginAsyncZod = async (app) => {
 									id: z.number().int().positive(),
 									value: z.string(),
 									createdAt: z.string().datetime(),
-									user: z.object({
-										name: z.string(),
-									}),
 								}),
 							),
 						}),

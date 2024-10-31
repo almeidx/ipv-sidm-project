@@ -4,11 +4,17 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"noEmit": true,
+		"noUncheckedSideEffectImports": true,
+		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2023",
-		"noUncheckedSideEffectImports": true,
-		"resolveJsonModule": true
+		"paths": {
+			"#lib/*": ["./src/lib/*"],
+			"#routes/*": ["./src/routes/*"],
+			"#utils/*": ["./src/utils/*"],
+			"#ws/*": ["./src/ws/*"]
+		}
 	},
 	"include": ["src/**/*.ts"]
 }
