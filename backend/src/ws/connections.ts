@@ -1,47 +1,35 @@
 import { WebSocketMessageType } from "#utils/websocket-message-types.ts";
 
-const connections: {
-	sensorId: string;
-	connectedAt: Date;
-	lastPingAt: Date;
-	connection: WebSocket;
-}[] = [];
+const connections = new Map<number, { connectedAt: Date; lastPingAt: Date; socket: WebSocket }>();
 
 export const MAX_PING_TIME = 10_000;
 
-export function getConnection(sensorId: string) {
-	return connections.find((d) => d.sensorId === sensorId);
+export function getConnection(sensorId: number) {
+	return connections.get(sensorId);
 }
 
-export function addConnection(sensorId: string, connection: WebSocket) {
-	const existingConnection = getConnection(sensorId);
-	if (existingConnection) {
+export function addConnection(sensorId: number, connection: WebSocket) {
+	if (connections.has(sensorId)) {
 		console.warn("Closing existing connection for sensor:", sensorId);
-		killSensorConnection(existingConnection.sensorId);
+		killSensorConnection(sensorId);
 	}
 
 	const now = new Date();
-	connections.push({ sensorId, connectedAt: now, lastPingAt: now, connection });
+
+	connections.set(sensorId, { connectedAt: now, lastPingAt: now, socket: connection });
 }
 
-export function removeConnection(sensorId: string) {
-	const index = connections.findIndex((d) => d.sensorId === sensorId);
-	if (index !== -1) {
-		connections.splice(index, 1);
-	}
-}
-
-export function killConnection(sensorId: string): void;
+export function killConnection(sensorId: number): void;
 export function killConnection(socket: WebSocket): void;
-export function killConnection(arg: string | WebSocket) {
-	if (typeof arg === "string") {
+export function killConnection(arg: number | WebSocket) {
+	if (typeof arg === "number") {
 		killSensorConnection(arg);
 	} else {
 		killSocketConnection(arg);
 	}
 }
 
-function killSensorConnection(sensorId: string) {
+function killSensorConnection(sensorId: number) {
 	const connection = getConnection(sensorId);
 	if (!connection) {
 		console.warn("killSensorConnection: Connection not found for sensor:", sensorId);
@@ -49,14 +37,14 @@ function killSensorConnection(sensorId: string) {
 	}
 
 	try {
-		connection.connection.send(JSON.stringify({ type: WebSocketMessageType.Die }));
-		connection.connection.close();
+		connection.socket.send(JSON.stringify({ type: WebSocketMessageType.Die }));
+		connection.socket.close();
 	} catch (error) {
 		console.error("Failed to kill sensor connection:", error);
 	}
 
 	if (sensorId) {
-		removeConnection(sensorId);
+		connections.delete(sensorId);
 	}
 }
 
@@ -69,7 +57,7 @@ function killSocketConnection(socket: WebSocket) {
 	}
 }
 
-export function validateSensorConnection(socket: WebSocket, sensorId: string | null): sensorId is string {
+export function validateSensorConnection(socket: WebSocket, sensorId: number | null): sensorId is number {
 	if (!sensorId) {
 		console.warn("Connection not identified");
 		killConnection(socket);
@@ -83,9 +71,9 @@ export function validateSensorConnection(socket: WebSocket, sensorId: string | n
 		return false;
 	}
 
-	if (device.lastPingAt.getTime() < Date.now() - MAX_PING_TIME) {
+	if (device.lastPingAt.getTime() <= Date.now() - MAX_PING_TIME) {
 		console.warn("Device %s has not pinged in 10 seconds", sensorId);
-		killConnection(device.sensorId);
+		killConnection(sensorId);
 		return false;
 	}
 
@@ -93,14 +81,15 @@ export function validateSensorConnection(socket: WebSocket, sensorId: string | n
 }
 
 setInterval(() => {
-	const now = new Date();
+	const now = Date.now();
 
-	for (const device of [...connections]) {
-		if (device.lastPingAt.getTime() < now.getTime() - MAX_PING_TIME) {
-			console.warn("Device %s has not pinged in 10 seconds, killing connection", device.sensorId);
-
-			killSensorConnection(device.sensorId);
+	for (const [sensorId, device] of connections.entries()) {
+		if (device.lastPingAt.getTime() > now - MAX_PING_TIME) {
+			continue;
 		}
+
+		console.warn("Device %s has not pinged in 10 seconds, killing connection", sensorId);
+		killSensorConnection(sensorId);
 	}
 }, 5_000).unref();
 

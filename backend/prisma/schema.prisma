@@ -42,7 +42,7 @@ model SensorData {
   id        Int      @id @default(autoincrement())
   value     String
   createdAt DateTime @default(now()) @map("created_at")
-  sensorId  String   @map("sensor_id")
+  sensorId  Int      @map("sensor_id")
 
   sensor Sensor @relation(fields: [sensorId], references: [id])
 
@@ -51,7 +51,7 @@ model SensorData {
 }
 
 model Sensor {
-  id           String   @id @default(uuid())
+  id           Int      @id @default(autoincrement())
   name         String
   sensorTypeId Int      @map("sensor_type_id")
   createdAt    DateTime @default(now()) @map("created_at")

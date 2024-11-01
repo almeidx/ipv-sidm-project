@@ -5,7 +5,7 @@ import { type WebSocketMessage, addConnection, killConnection } from "./connecti
 export async function identifyHandler(socket: WebSocket, data: WebSocketMessage) {
 	console.log("Received identify message");
 
-	const payload = data.payload as { sensorId: string };
+	const payload = data.payload as { sensorId: number };
 	if (!payload.sensorId) {
 		console.warn("Invalid identify message:", data);
 		killConnection(socket);

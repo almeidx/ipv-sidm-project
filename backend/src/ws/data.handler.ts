@@ -1,7 +1,7 @@
 import { prisma } from "#lib/prisma.ts";
 import { type WebSocketMessage, killConnection, validateSensorConnection } from "./connections.ts";
 
-export async function dataHandler(socket: WebSocket, sensorId: string | null, data: WebSocketMessage) {
+export async function dataHandler(socket: WebSocket, sensorId: number | null, data: WebSocketMessage) {
 	if (!validateSensorConnection(socket, sensorId)) {
 		return;
 	}

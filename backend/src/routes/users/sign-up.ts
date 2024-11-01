@@ -16,6 +16,7 @@ export const signUp: FastifyPluginAsyncZod = async (app) => {
 				}),
 				response: {
 					201: z.object({ token: z.string() }),
+					409: z.object({ message: z.string() }),
 				},
 			},
 		},

@@ -9,7 +9,7 @@ assert(process.env.SENSOR_ID, "SENSOR_ID is required");
 assert(process.env.SENSOR_TYPE_ID, "SENSOR_TYPE_ID is required");
 assert(process.env.SENSOR_TYPE_INDEX, "SENSOR_TYPE_INDEX is required");
 
-const sensorId = process.env.SENSOR_ID;
+const sensorId = Number.parseInt(process.env.SENSOR_ID, 10);
 const sensorTypeId = Number.parseInt(process.env.SENSOR_TYPE_ID, 10);
 const sensorTypeIndex = Number.parseInt(process.env.SENSOR_TYPE_INDEX, 10);
 
@@ -26,7 +26,7 @@ let dataInterval: NodeJS.Timeout | null = null;
 let pingInterval: NodeJS.Timeout | null = null;
 
 function connect() {
-    cleanup(); // Ensure previous connection is cleaned up
+    cleanup();
 
     ws = new WebSocket(`ws://localhost:${port}/ws`);
 
@@ -109,7 +109,6 @@ async function setupIntervals() {
         const data = await getDataset(sensorTypeId);
         let index = sensorTypeIndex * Math.floor(data.length / 5);
 
-        // Set up ping interval first
         pingInterval = setInterval(() => {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 console.warn("WebSocket not ready for ping");
@@ -124,7 +123,6 @@ async function setupIntervals() {
             }
         }, PING_INTERVAL);
 
-        // Set up data interval
         dataInterval = setInterval(() => {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 console.warn("WebSocket not ready for data");
@@ -188,5 +186,4 @@ process.on('SIGTERM', () => {
     process.exit(0);
 });
 
-// Start the initial connection
 connect();

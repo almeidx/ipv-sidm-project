@@ -2,18 +2,18 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const devices = [
-	{ sensorId: "236f02b0-ac71-4b22-b11d-94003fe3d8f5", sensorTypeId: 1, indexOfType: 0 },
-	{ sensorId: "19b0e0ab-264f-4b77-8064-6cd68623c08b", sensorTypeId: 1, indexOfType: 1 },
-	{ sensorId: "0b5c83fe-4b5b-48bb-b1a8-6e14c3f1b626", sensorTypeId: 1, indexOfType: 2 },
-	// { sensorId: "492167c2-619c-439e-b036-bd06c4716909", sensorTypeId: 2, indexOfType: 0 },
-	// { sensorId: "5cec1bb9-2dd3-4a6b-9663-660b9637317b", sensorTypeId: 2, indexOfType: 1 },
-	// { sensorId: "6bdd123c-f94b-49fc-b525-507213b4e71c", sensorTypeId: 3, indexOfType: 0 },
-	// { sensorId: "d61ab837-31df-485b-9564-4dfa87793b75", sensorTypeId: 3, indexOfType: 1 },
-	// { sensorId: "0133ad16-5188-458e-a9d5-db7182cba3d0", sensorTypeId: 4, indexOfType: 0 },
-	// { sensorId: "25f1537c-1284-4ec3-8faa-23ffd95d5695", sensorTypeId: 4, indexOfType: 1 },
-	// { sensorId: "58ccc52f-7deb-46be-a32f-7b9e33530ebc", sensorTypeId: 5, indexOfType: 0 },
-	// { sensorId: "373717f3-62e3-488f-a61d-b45695b84243", sensorTypeId: 5, indexOfType: 1 },
-] satisfies { sensorId: string; sensorTypeId: number, indexOfType: number }[];
+	{ sensorId: 1, sensorTypeId: 1, indexOfType: 0 },
+	{ sensorId: 2, sensorTypeId: 1, indexOfType: 1 },
+	{ sensorId: 3, sensorTypeId: 1, indexOfType: 2 },
+	{ sensorId: 4, sensorTypeId: 2, indexOfType: 0 },
+	{ sensorId: 5, sensorTypeId: 2, indexOfType: 1 },
+	{ sensorId: 6, sensorTypeId: 3, indexOfType: 0 },
+	{ sensorId: 7, sensorTypeId: 3, indexOfType: 1 },
+	{ sensorId: 8, sensorTypeId: 4, indexOfType: 0 },
+	{ sensorId: 9, sensorTypeId: 4, indexOfType: 1 },
+	// { sensorId: 10, sensorTypeId: 5, indexOfType: 0 },
+	// { sensorId: 11, sensorTypeId: 5, indexOfType: 1 },
+] satisfies { sensorId: number; sensorTypeId: number, indexOfType: number }[];
 
 console.log("Starting devices...");
 
@@ -26,7 +26,7 @@ for (const { sensorId, sensorTypeId, indexOfType } of devices) {
 		{
 			env: {
 				...process.env,
-				SENSOR_ID: sensorId,
+				SENSOR_ID: sensorId.toString(),
 				SENSOR_TYPE_ID: sensorTypeId.toString(),
         SENSOR_TYPE_INDEX: indexOfType.toString(),
 			},

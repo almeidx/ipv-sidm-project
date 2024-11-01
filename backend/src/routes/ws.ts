@@ -9,7 +9,7 @@ export const webSocketRoute: FastifyPluginAsyncZod = async (app) => {
 	app.get("/ws", { websocket: true }, (socket: WebSocket, _req) => {
 		console.log("New ws connection");
 
-		let sensorId: string | null = null;
+		let sensorId: number | null = null;
 
 		socket.addEventListener("message", async (messageEvent) => {
 			const message = messageEvent.data.toString();
@@ -40,19 +40,19 @@ export const webSocketRoute: FastifyPluginAsyncZod = async (app) => {
 
 					default: {
 						console.warn("Unknown message type:", data.type);
-						killConnection((sensorId as string) ?? socket);
+						killConnection((sensorId as number) ?? socket);
 						break;
 					}
 				}
 			} catch (error) {
 				console.error("Failed to parse or process message:", error);
-				killConnection((sensorId as string) ?? socket);
+				killConnection((sensorId as number) ?? socket);
 			}
 		});
 
 		socket.addEventListener("close", () => {
 			console.log("Client disconnected, cleaning up...");
-			killConnection((sensorId as string) ?? socket);
+			killConnection((sensorId as number) ?? socket);
 		});
 	});
 };

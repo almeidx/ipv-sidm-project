@@ -1,7 +1,7 @@
 import { WebSocketMessageType } from "#utils/websocket-message-types.ts";
 import { getConnection, validateSensorConnection } from "./connections.ts";
 
-export async function pingHandler(socket: WebSocket, sensorId: string | null) {
+export async function pingHandler(socket: WebSocket, sensorId: number | null) {
 	if (!validateSensorConnection(socket, sensorId)) {
 		return;
 	}

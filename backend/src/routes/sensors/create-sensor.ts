@@ -12,7 +12,7 @@ export const createSensor: FastifyPluginAsyncZod = async (app) => {
 					sensorType: z.number().int().min(1),
 				}),
 				response: {
-					201: z.object({ id: z.string().uuid() }),
+					201: z.object({ id: z.number().int().positive() }),
 					409: z.object({ message: z.string() }),
 				},
 			},

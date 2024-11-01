@@ -3,7 +3,13 @@ import { fastifyJwt } from "@fastify/jwt";
 import { fastifySensible } from "@fastify/sensible";
 import { fastifyWebsocket } from "@fastify/websocket";
 import { fastify } from "fastify";
-import { type ZodTypeProvider, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+import {
+	type ZodTypeProvider,
+	hasZodFastifySchemaValidationErrors,
+	isResponseSerializationError,
+	serializerCompiler,
+	validatorCompiler,
+} from "fastify-type-provider-zod";
 import { env } from "#lib/env.ts";
 import { getStatus } from "#routes/get-status.ts";
 import { createSensor } from "#routes/sensors/create-sensor.ts";
@@ -31,6 +37,36 @@ await app.register(fastifyWebsocket, {
 	options: {
 		maxPayload: 1024 * 1024, // 1mb
 	},
+});
+
+app.setErrorHandler((err, req, reply) => {
+	if (hasZodFastifySchemaValidationErrors(err)) {
+		return reply.code(400).send({
+			error: "Response Validation Error",
+			message: "Request doesn't match the schema",
+			statusCode: 400,
+			details: {
+				issues: err.validation,
+				method: req.method,
+				url: req.url,
+			},
+		});
+	}
+
+	if (isResponseSerializationError(err)) {
+		return reply.code(500).send({
+			error: "Internal Server Error",
+			message: "Response doesn't match the schema",
+			statusCode: 500,
+			details: {
+				issues: err.cause.issues,
+				method: err.method,
+				url: err.url,
+			},
+		});
+	}
+
+	reply.send(err);
 });
 
 await app.register(async (instance) => {

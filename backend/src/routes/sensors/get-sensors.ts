@@ -11,7 +11,7 @@ export const getSensors: FastifyPluginAsyncZod = async (app) => {
 					200: z.object({
 						sensors: z.array(
 							z.object({
-								id: z.string().uuid(),
+								id: z.number().int().positive(),
 								name: z.string(),
 								createdAt: z.string().date(),
 							}),

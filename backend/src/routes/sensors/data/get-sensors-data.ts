@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { getSensorsDataImpl } from "#utils/get-sensors-data.ts";
+import { getSensorsDataImpl, singleSensorDataSchema } from "#utils/get-sensors-data.ts";
 
 export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 	app.get(
@@ -13,20 +13,7 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 				}),
 				response: {
 					200: z.object({
-						sensors: z.array(
-							z.object({
-								id: z.string().uuid(),
-								name: z.string(),
-								sensorData: z.record(
-									z.string().date(),
-									z.object({
-										id: z.number().int().positive(),
-										value: z.string(),
-										createdAt: z.string().datetime(),
-									}),
-								),
-							}),
-						),
+						sensors: z.array(singleSensorDataSchema),
 					}),
 				},
 			},
