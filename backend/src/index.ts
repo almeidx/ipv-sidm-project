@@ -19,6 +19,7 @@ import { getSensors } from "#routes/sensors/get-sensors.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
+import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -73,6 +74,9 @@ await app.register(async (instance) => {
 	// sensors/data
 	await instance.register(getSensorData);
 	await instance.register(getSensorsData);
+
+	// sensors/types
+	await instance.register(getSensorTypes);
 
 	// sensors
 	await instance.register(getSensors);

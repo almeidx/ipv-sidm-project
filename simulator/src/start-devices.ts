@@ -11,8 +11,8 @@ const devices = [
 	{ sensorId: 7, sensorTypeId: 3, indexOfType: 1 },
 	{ sensorId: 8, sensorTypeId: 4, indexOfType: 0 },
 	{ sensorId: 9, sensorTypeId: 4, indexOfType: 1 },
-	// { sensorId: 10, sensorTypeId: 5, indexOfType: 0 },
-	// { sensorId: 11, sensorTypeId: 5, indexOfType: 1 },
+	{ sensorId: 10, sensorTypeId: 5, indexOfType: 0 },
+	{ sensorId: 11, sensorTypeId: 5, indexOfType: 1 },
 ] satisfies { sensorId: number; sensorTypeId: number, indexOfType: number }[];
 
 console.log("Starting devices...");

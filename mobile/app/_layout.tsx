@@ -1,13 +1,13 @@
-import "../global.css";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
-import { Toaster } from "sonner-native";
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import "react-native-reanimated";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Toaster } from "sonner-native";
+import "../global.css";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -53,8 +53,6 @@ function RootLayoutNav() {
 				<Stack>
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 					{/* <Stack.Screen name="modal" options={{ presentation: "modal" }} /> */}
-
-
 				</Stack>
 
 				<Toaster position="bottom-center" />

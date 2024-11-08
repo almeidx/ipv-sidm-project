@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{url}}/sensors/data
+  url: {{url}}/sensors/data?startDate=2024-11-07T17:25:00Z
   body: none
   auth: none
+}
+
+params:query {
+  startDate: 2024-11-07T17:25:00Z
 }

@@ -18,7 +18,7 @@ export async function dataHandler(socket: WebSocket, sensorId: number | null, da
 
 	await prisma.sensorData.create({
 		data: {
-			value: payload.value.toString(),
+			value: payload.value,
 			sensorId: sensorId!,
 		},
 		select: {
