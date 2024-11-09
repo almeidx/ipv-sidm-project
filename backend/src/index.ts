@@ -20,6 +20,8 @@ import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
 import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
+import { getNotifications } from "#routes/notifications/get-notifications.ts";
+import { markNotificationAsRead } from "#routes/notifications/mark-notification-as-read.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -71,6 +73,10 @@ app.setErrorHandler((err, req, reply) => {
 });
 
 await app.register(async (instance) => {
+	// notifications
+	await instance.register(getNotifications);
+	await instance.register(markNotificationAsRead);
+
 	// sensors/data
 	await instance.register(getSensorData);
 	await instance.register(getSensorsData);

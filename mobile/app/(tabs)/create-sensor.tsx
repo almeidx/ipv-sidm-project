@@ -1,12 +1,12 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { API_URL } from "../../utils/constants";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useEffect, useState } from "react";
-import { LinearGradient } from "expo-linear-gradient";
+import { Text, TouchableOpacity, View } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Input } from "../../components/input"
+import { Input } from "../../components/input";
+import { API_URL } from "../../utils/constants";
+import type { GetSensorTypesResult } from "../../utils/api-types";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");
@@ -17,10 +17,40 @@ export default function CreateSensor() {
 	const [minThreshold, setMinThreshold] = useState("");
 
 	useEffect(() => {
+		async function getSensorTypes() {
+			try {
+				const response = await fetch(`${API_URL}/sensors/types`, {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+					},
+				});
+
+				if (!response.ok) {
+					throw new Error(`Failed to fetch sensor types: ${response.status}`);
+				}
+
+				const data = (await response.json()) as GetSensorTypesResult;
+				setSensorTypes(data.sensorTypes);
+			} catch (error) {
+				console.error("Error fetching sensor types:", error);
+			} finally {
+				setLoading(false);
+			}
+		}
+
 		getSensorTypes();
 	}, []);
 
 	async function handleCreate() {
+		const maxThresholdNumber = Number(maxThreshold);
+		const minThresholdNumber = Number(minThreshold);
+
+		if (maxThresholdNumber <= minThresholdNumber) {
+			toast.error("Limite máximo deve ser maior que o limite mínimo");
+			return;
+		}
+
 		try {
 			const response = await fetch(`${API_URL}/sensors`, {
 				method: "POST",
@@ -30,8 +60,8 @@ export default function CreateSensor() {
 				body: JSON.stringify({
 					name,
 					sensorType: Number(selectedValue),
-					maxThreshold: Number(maxThreshold),
-					minThreshold: Number(minThreshold),
+					maxThreshold: maxThresholdNumber,
+					minThreshold: minThresholdNumber,
 				}),
 			});
 
@@ -43,7 +73,9 @@ export default function CreateSensor() {
 				}
 
 				case 400: {
-					toast.error("Invalid input data");
+					const message = await response.json();
+					console.error("Invalid input data", message);
+					toast.error(`Invalid input data ${JSON.stringify(message.details.issues[0].params.issue.message)}`);
 					break;
 				}
 
@@ -66,28 +98,6 @@ export default function CreateSensor() {
 		}
 	}
 
-	async function getSensorTypes() {
-		try {
-			const response = await fetch(`${API_URL}/sensors/types`, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error(`Failed to fetch sensor types: ${response.status}`);
-			}
-
-			const data = (await response.json()) as GetSensorTypesResult;
-			setSensorTypes(data.sensorTypes);
-		} catch (error) {
-			console.error("Error fetching sensor types:", error);
-		} finally {
-			setLoading(false);
-		}
-	}
-
 	if (isLoading) {
 		return (
 			<BasePage>
@@ -99,56 +109,56 @@ export default function CreateSensor() {
 	return (
 		<BasePage>
 			<View className="flex-1 items-center pt-9 flex flex-col gap-5 h-full">
-				<TextInput
-					className="w-11/12 px-4 h-14 border-2 border-gray-300 rounded-lg bg-white/10 placeholder:text-black text-black"
+				<Input
 					placeholder="Nome"
-					textContentType="name"
 					value={name}
-					placeholderTextColor="black"
-					onChangeText={(text) => setName(text)}
+					onChangeText={setName}
 					style={{
-						fontSize: 16, // Tamanho da fonte igual ao do RNPickerSelect
+						fontSize: 16,
 					}}
+					placeholderTextColor="black"
 				/>
-
-				<View className="w-11/12 h-14 border-2 border-gray-300 rounded-lg bg-white/10 text-black">
+				<View className="w-full h-14 border-2 border-gray-300 rounded-lg bg-white/10 text-black ">
 					<RNPickerSelect
 						onValueChange={(itemValue) => setSelectedValue(itemValue)}
-						items={sensorTypes.map((type) => ({ label: type.name, value: type.id.toString() }))}
+						items={[
+							{
+								label: "Selecione um tipo de sensor",
+								value: null,
+								color: "#999999",
+							},
+							...sensorTypes.map((type) => ({
+								label: type.name,
+								value: type.id.toString()
+							}))
+						]}
 						value={selectedValue}
 						style={{
 							inputIOS: {
 								color: "black",
 								backgroundColor: "transparent",
 								textAlign: "center",
-								width: "100%",
-								fontSize: 16, // Tamanho da fonte igual ao do TextInput
+								fontSize: 16,
 							},
 							inputAndroid: {
 								color: "black",
 								backgroundColor: "transparent",
 								textAlign: "center",
-								width: "100%",
-								fontSize: 16, // Tamanho da fonte igual ao do TextInput
+								fontSize: 16,
 							},
 							placeholder: {
-								color: "black", // Cor do texto do placeholder
+								color: "#999999",
 								textAlign: "left",
 								paddingLeft: 20,
-								fontSize: 16, // Tamanho da fonte igual ao do TextInput
+
 							},
 						}}
-						placeholder={{ label: "Selecione um tipo de sensor", value: null }}
+						doneText=""
+						Icon={() => null}
+						placeholder={{}}
 					/>
 				</View>
 
-
-				<Input
-					placeholder="Limite Máximo"
-					value={minThreshold}
-					onChangeText={setMaxThreshold}
-					keyboardType="numeric"
-				/>
 
 
 				<Input
@@ -156,6 +166,19 @@ export default function CreateSensor() {
 					value={minThreshold}
 					onChangeText={setMinThreshold}
 					keyboardType="numeric"
+					style={{
+						fontSize: 16,
+					}}
+				/>
+
+				<Input
+					placeholder="Limite Máximo"
+					value={maxThreshold}
+					onChangeText={setMaxThreshold}
+					keyboardType="numeric"
+					style={{
+						fontSize: 16,
+					}}
 				/>
 
 				<TouchableOpacity
@@ -168,11 +191,3 @@ export default function CreateSensor() {
 		</BasePage>
 	);
 }
-
-interface GetSensorTypesResult {
-	sensorTypes: {
-		id: number;
-		name: string;
-	}[];
-}
-

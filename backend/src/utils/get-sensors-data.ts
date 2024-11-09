@@ -14,6 +14,8 @@ export const singleSensorDataSchema = z.object({
 	),
   currentValue: z.string(),
   minValue: z.number(),
+  thresholdWarning: z.union([z.literal("above"), z.literal("below"), z.null()]),
+  sensorTypeId: z.number().int().positive(),
 });
 
 export async function getSensorsDataImpl({
@@ -83,6 +85,12 @@ export async function getSensorsDataImpl({
     const currentValue = filteredData[filteredData.length - 1]?.value ?? 0;
     const minValue = filteredData.reduce((min, data) => Math.min(min, data.value), Infinity);
 
+    const thresholdWarning = currentValue > sensor.maxThreshold
+      ? "above" as const
+      : currentValue < sensor.minThreshold
+      ? "below" as const
+      : null;
+
 		return {
 			...sensor,
       currentValue: `${currentValue} ${sensorTypeUnitsMap[sensor.sensorTypeId] ?? ''}`,
@@ -91,6 +99,7 @@ export async function getSensorsDataImpl({
 				value: data.value,
 				// label: dayjs(data.createdAt).format("HH:mm:ss"),
 			})),
+      thresholdWarning,
 		};
 	});
 }

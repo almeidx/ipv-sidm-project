@@ -52,7 +52,7 @@ function RootLayoutNav() {
 			<GestureHandlerRootView>
 				<Stack>
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-					{/* <Stack.Screen name="modal" options={{ presentation: "modal" }} /> */}
+					<Stack.Screen name="sensor-filter-modal" options={{ presentation: "modal", headerShown: false }} />
 				</Stack>
 
 				<Toaster position="bottom-center" />

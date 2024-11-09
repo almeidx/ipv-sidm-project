@@ -10,7 +10,9 @@ export const createSensor: FastifyPluginAsyncZod = async (app) => {
 				body: z.object({
 					name: z.string().min(3).max(32),
 					sensorType: z.number().int().min(1),
-				}),
+					minThreshold: z.number(),
+					maxThreshold: z.number(),
+				}).refine((data) => data.minThreshold < data.maxThreshold),
 				response: {
 					201: z.object({ id: z.number().int().positive() }),
 					409: z.object({ message: z.string() }),
@@ -18,7 +20,7 @@ export const createSensor: FastifyPluginAsyncZod = async (app) => {
 			},
 		},
 		async (request, reply) => {
-			const { name, sensorType } = request.body;
+			const { name, sensorType, minThreshold, maxThreshold } = request.body;
 
 			const existingSensor = await prisma.sensor.findFirst({
 				where: {
@@ -37,6 +39,8 @@ export const createSensor: FastifyPluginAsyncZod = async (app) => {
 				data: {
 					name,
 					sensorTypeId: sensorType,
+					minThreshold,
+					maxThreshold,
 				},
 				select: {
 					id: true,

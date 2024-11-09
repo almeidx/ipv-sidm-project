@@ -55,11 +55,12 @@ model Sensor {
   name         String
   sensorTypeId Int      @map("sensor_type_id")
   createdAt    DateTime @default(now()) @map("created_at")
-  maxThreshold Float?   @map("max_threshold")
-  minThreshold Float?   @map("min_threshold")
+  maxThreshold Float    @map("max_threshold")
+  minThreshold Float    @map("min_threshold")
 
-  sensorData SensorData[]
-  sensorType SensorType   @relation(fields: [sensorTypeId], references: [id])
+  sensorData    SensorData[]
+  sensorType    SensorType      @relation(fields: [sensorTypeId], references: [id])
+  notifications Notifications[]
 
   @@map("sensors")
 }
@@ -72,4 +73,21 @@ model SensorType {
   sensors Sensor[]
 
   @@map("sensor_types")
+}
+
+model Notifications {
+  id                 Int       @id @default(autoincrement())
+  value              Float
+  /// 0 - No threshold surpassed
+  /// 1 - Min threshold surpassed
+  /// 2 - Max threshold surpassed
+  thresholdSurpassed Int       @map("threshold_surpassed")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  sensorId           Int       @map("sensor_id")
+  deletedAt          DateTime? @map("deleted_at")
+
+  sensor Sensor @relation(fields: [sensorId], references: [id])
+
+  @@index([sensorId])
+  @@map("notifications")
 }
