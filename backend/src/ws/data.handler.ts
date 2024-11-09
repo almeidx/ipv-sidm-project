@@ -1,5 +1,5 @@
 import { prisma } from "#lib/prisma.ts";
-import { ThresholdStatus } from "../utils/threshold-surpassed-enum.ts";
+import { ThresholdStatus } from "#utils/threshold-surpassed-enum.ts";
 import {
   type WebSocketMessage,
   killConnection,
@@ -65,16 +65,19 @@ async function handleSensorReading(
 
   const currentStatus = determineThresholdStatus(value, sensor);
 
-  const hasRecentWarning = sensor.notifications.some(
-    notification => notification.thresholdSurpassed !== ThresholdStatus.Normal
-  );
+  // Check if the most recent notification (if any) matches our current status
+  const latestNotification = sensor.notifications[0];
+  const statusChanged = !latestNotification ||
+                       latestNotification.thresholdSurpassed !== currentStatus;
 
-  await handleNotifications(
-    sensorId,
-    currentStatus,
-    hasRecentWarning,
-    value
-  );
+  // Only proceed if the status has actually changed
+  if (statusChanged) {
+    await handleNotifications(
+      sensorId,
+      currentStatus,
+      value
+    );
+  }
 }
 
 function determineThresholdStatus(
@@ -89,44 +92,18 @@ function determineThresholdStatus(
 async function handleNotifications(
   sensorId: number,
   status: ThresholdStatus,
-  hasRecentWarning: boolean,
   value: number
 ) {
   if (status !== ThresholdStatus.Normal) {
-    if (hasRecentWarning) {
-      console.warn("Not sending notification, already sent one in the past hour");
-      return;
-    }
-
     console.warn(
       "Threshold surpassed:",
       status === ThresholdStatus.Below ? "below" : "above"
     );
-
-    await createNotification(sensorId, status, value);
-  } else if (hasRecentWarning) {
-    // Only create a normal notification when returning to normal from a warning state
-    console.log("Value returned to normal range, clearing warnings");
-
-    await clearWarningNotifications(sensorId);
-    await createNotification(sensorId, ThresholdStatus.Normal, value);
   } else {
-    console.log("Value is within thresholds");
+    console.log("Value returned to normal range");
   }
-}
 
-async function clearWarningNotifications(
-  sensorId: number
-) {
-  await prisma.notifications.updateMany({
-    where: {
-      sensorId,
-      thresholdSurpassed: { not: ThresholdStatus.Normal },
-    },
-    data: {
-      deletedAt: new Date(),
-    },
-  });
+  await createNotification(sensorId, status, value);
 }
 
 async function createNotification(

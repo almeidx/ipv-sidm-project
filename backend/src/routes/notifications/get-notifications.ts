@@ -16,7 +16,10 @@ export const getNotifications: FastifyPluginAsyncZod = async (app) => {
                 sensor: z.object({
                   id: z.number(),
                   name: z.string(),
-                  sensorTypeId: z.number(),
+                  sensorType: z.object({
+                    id: z.number(),
+                    unit: z.string(),
+                  }),
                 }),
                 thresholdSurpassed: z.number().int().min(0).max(2),
                 value: z.number(),
@@ -35,7 +38,13 @@ export const getNotifications: FastifyPluginAsyncZod = async (app) => {
             select: {
               id: true,
               name: true,
-              sensorTypeId: true,
+
+              sensorType: {
+                select: {
+                  id: true,
+                  unit: true,
+                },
+              },
             },
           },
           thresholdSurpassed: true,

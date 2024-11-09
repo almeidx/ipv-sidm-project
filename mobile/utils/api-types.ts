@@ -13,7 +13,10 @@ export interface GetNotificationsResult {
       sensor: {
         id: number;
         name: string;
-        sensorTypeId: number;
+        sensorType: {
+          id: number;
+          unit: string;
+        }
       };
       thresholdSurpassed: number;
       value: number;

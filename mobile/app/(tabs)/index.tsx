@@ -3,6 +3,7 @@ import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
+import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
 import type { GetSensorsDataResult } from "../../utils/api-types";
@@ -10,22 +11,35 @@ import { getSensorIcon } from "../../utils/get-sensor-icon";
 import { makeApiRequest } from "../../utils/make-api-request";
 
 export default function Home() {
-	const [data, setData] = useState<GetSensorsDataResult["sensors"]>([]);
+	const [sensorsData, setSensorsData] = useState<GetSensorsDataResult["sensors"]>([]);
 	const [search, setSearch] = useState("");
 
 	useEffect(() => {
-		const pastHour = new Date();
-		pastHour.setHours(pastHour.getHours() - 1);
+		async function fetchSensorsData() {
+			const pastHour = new Date();
+			pastHour.setHours(pastHour.getHours() - 1);
 
-		makeApiRequest<GetSensorsDataResult>('/sensors/data', {
-			query: {
-				startDate: pastHour.toISOString(),
-			},
-		})
-			.then((data) => setData(data.sensors))
+			makeApiRequest<GetSensorsDataResult>("/sensors/data", {
+				query: {
+					startDate: pastHour.toISOString(),
+				},
+			}).then((data) => {
+				setSensorsData(data.sensors)
+				// toast.loading("Dados atualizados");
+			});
+		}
+
+		fetchSensorsData();
+
+		const interval = setInterval(
+			fetchSensorsData,
+			1 * 1_000, // 10 seconds
+		);
+
+		return () => clearInterval(interval);
 	}, []);
 
-	if (!data.length) {
+	if (!sensorsData.length) {
 		return (
 			<BasePage>
 				<Text>Loading...</Text>
@@ -49,36 +63,53 @@ export default function Home() {
 				</Link>
 			</View>
 
-			{data.map((sensor) => (
-				<View
-					className="flex gap-4 items-center flex-row bg-slate-200 p-4 rounded-xl h-28 shadow"
-					key={sensor.id}
-				>
-					<FontAwesome size={32} name={getSensorIcon(sensor.sensorTypeId)} />
+			<View className="flex flex-col w-full mt-4 gap-6">
+				{sensorsData.map((sensor) => (
+					<View key={sensor.id}>
+						<View className="flex flex-col gap-4 rounded-lg">
+							<View className="flex flex-row items-center">
+								{/* Ícone do sensor */}
+								<View className="flex justify-center items-center mr-3">
+									<FontAwesome
+										size={25}
+										name={getSensorIcon(sensor.sensorTypeId)}
+										color="grey"
+									/>
+								</View>
 
-					<View className="flex flex-col gap-2 w-11/12 mt-4">
-						<View className="flex flex-row justify-between">
-							<Text className="text-xl">{sensor.name}</Text>
-							<Text className="text-xl">{sensor.currentValue}</Text>
+								{/* Nome do sensor */}
+								<View className="flex flex-col gap-1">
+									<Text className="text-xl font-semibold">{sensor.name}</Text>
+								</View>
+
+								{/* Temperatura (alinhada à direita) */}
+								<View className="ml-auto">
+									<Text className="text-lg">{sensor.currentValue}</Text>
+								</View>
+							</View>
+
+							{/* Gráfico */}
+							<View className="w-[107%] -ml-8">
+								<LineChart
+									adjustToWidth
+									data={sensor.sensorData}
+									disableScroll
+									height={30}
+									hideAxesAndRules
+									hideDataPoints
+									hideRules
+									hideYAxisText
+									thickness={2}
+									yAxisOffset={sensor.minValue}
+									color={sensor.thresholdWarning === null ? "green" : "red"}
+								/>
+							</View>
+
+							<View className="h-px bg-gray-300 w-full" />
 						</View>
-
-						<LineChart
-							adjustToWidth
-							data={sensor.sensorData}
-							disableScroll
-							height={50}
-							hideAxesAndRules
-							hideDataPoints
-							hideRules
-							hideYAxisText
-							thickness={2}
-							yAxisOffset={sensor.minValue}
-							color={sensor.thresholdWarning === null ? "green" : "red"}
-						/>
 					</View>
-				</View>
-			))}
+				))}
+			</View>
 		</BasePage>
 	);
 }
-

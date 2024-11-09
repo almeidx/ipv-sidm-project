@@ -82,8 +82,8 @@ export async function getSensorsDataImpl({
 			return false;
 		});
 
-    const currentValue = filteredData[filteredData.length - 1]?.value ?? 0;
-    const minValue = filteredData.reduce((min, data) => Math.min(min, data.value), Infinity);
+    const currentValue = sensor.sensorData[sensor.sensorData.length - 1]?.value ?? 0;
+    const minValue = sensor.sensorData.reduce((min, data) => Math.min(min, data.value), Infinity);
 
     const thresholdWarning = currentValue > sensor.maxThreshold
       ? "above" as const

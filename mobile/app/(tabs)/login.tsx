@@ -72,7 +72,7 @@ export default function Login() {
 					className="size-40"
 				/>
 
-				<View className="flex flex-col gap-4 items-center w-full bg-gradient-to-b from-blue-900 to-sky-700">
+				<View className="flex flex-col gap-4 items-center w-full">
 					<TextInput
 						className="w-11/12 px-4 h-14 border-2 border-gray-300 rounded-lg bg-white/10 placeholder:text-white"
 						placeholder="Email"
