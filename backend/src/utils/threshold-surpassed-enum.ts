@@ -1,5 +1,5 @@
 export enum ThresholdStatus {
-  Normal,
-  Below,
-  Above,
+	Normal = 0,
+	Below = 1,
+	Above = 2,
 }

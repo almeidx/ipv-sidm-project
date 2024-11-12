@@ -4,71 +4,81 @@ import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
 
 export const singleSensorDataSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string(),
+	id: z.number().int().positive(),
+	name: z.string(),
 	sensorData: z.array(
 		z.object({
 			value: z.number(),
 			// label: z.string(),
 		}),
 	),
-  currentValue: z.string(),
-  minValue: z.number(),
-  thresholdWarning: z.union([z.literal("above"), z.literal("below"), z.null()]),
-  sensorTypeId: z.number().int().positive(),
+	currentValue: z.string(),
+	minValue: z.number(),
+	thresholdWarning: z.union([z.literal("above"), z.literal("below"), z.null()]),
+	sensorTypeId: z.number().int().positive(),
 });
 
 export async function getSensorsDataImpl({
-  sensorId,
-  startDate: rawStartDate,
-  endDate: rawEndDate,
+	sensorId,
+	startDate: rawStartDate,
+	endDate: rawEndDate,
+	query,
+	sensorTypeIds,
 }: GetSensorsDataOptions) {
-  const startDate = rawStartDate
-    ? dayjs(rawStartDate)
-    : dayjs().subtract(1, "week");
-  const endDate = rawEndDate ? dayjs(rawEndDate) : null;
+	const startDate = rawStartDate ? dayjs(rawStartDate) : dayjs().subtract(1, "week");
+	const endDate = rawEndDate ? dayjs(rawEndDate) : null;
 
-  const sensorWhere: Prisma.SensorWhereInput = {};
-  if (sensorId) {
-    sensorWhere.id = sensorId;
-  }
+	const sensorWhere: Prisma.SensorWhereInput = {};
+	if (sensorId) {
+		sensorWhere.id = sensorId;
+	}
 
-  const sensors = await prisma.sensor.findMany({
-    where: sensorWhere,
-    select: {
-      id: true,
-      name: true,
-      sensorTypeId: true,
-      sensorData: {
-        select: {
-          value: true,
-          createdAt: true,
-        },
-        where: {
-          createdAt: {
-            gte: startDate.toDate(),
-            ...(endDate ? { lte: endDate.toDate() } : {}),
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-      maxThreshold: true,
-      minThreshold: true,
-    },
-  });
+	if (query) {
+		sensorWhere.name = {
+			contains: query,
+		};
+	}
 
-  const sensorTypes = await prisma.sensorType.findMany({
-    select: {
-      id: true,
-      unit: true,
-    },
-  });
+	if (sensorTypeIds) {
+		sensorWhere.sensorTypeId = {
+			in: sensorTypeIds,
+		};
+	}
 
-  const sensorTypeUnitsMap = Object.fromEntries(
-    sensorTypes.map((type) => [type.id, type.unit]),
-  );
+	const sensors = await prisma.sensor.findMany({
+		where: sensorWhere,
+		select: {
+			id: true,
+			name: true,
+			sensorTypeId: true,
+			sensorData: {
+				select: {
+					value: true,
+					createdAt: true,
+				},
+				where: {
+					createdAt: {
+						gte: startDate.toDate(),
+						...(endDate ? { lte: endDate.toDate() } : {}),
+					},
+				},
+				orderBy: {
+					createdAt: "asc",
+				},
+			},
+			maxThreshold: true,
+			minThreshold: true,
+		},
+	});
+
+	const sensorTypes = await prisma.sensorType.findMany({
+		select: {
+			id: true,
+			unit: true,
+		},
+	});
+
+	const sensorTypeUnitsMap = Object.fromEntries(sensorTypes.map((type) => [type.id, type.unit]));
 
 	return sensors.map((sensor) => {
 		let lastTimestamp: dayjs.Dayjs | null = null;
@@ -82,30 +92,33 @@ export async function getSensorsDataImpl({
 			return false;
 		});
 
-    const currentValue = sensor.sensorData[sensor.sensorData.length - 1]?.value ?? 0;
-    const minValue = sensor.sensorData.reduce((min, data) => Math.min(min, data.value), Infinity);
+		const currentValue = sensor.sensorData[sensor.sensorData.length - 1]?.value ?? 0;
+		const minValue = sensor.sensorData.reduce((min, data) => Math.min(min, data.value), Number.POSITIVE_INFINITY);
 
-    const thresholdWarning = currentValue > sensor.maxThreshold
-      ? "above" as const
-      : currentValue < sensor.minThreshold
-      ? "below" as const
-      : null;
+		const thresholdWarning =
+			currentValue > sensor.maxThreshold
+				? ("above" as const)
+				: currentValue < sensor.minThreshold
+					? ("below" as const)
+					: null;
 
 		return {
 			...sensor,
-      currentValue: `${currentValue} ${sensorTypeUnitsMap[sensor.sensorTypeId] ?? ''}`,
-      minValue,
+			currentValue: `${currentValue} ${sensorTypeUnitsMap[sensor.sensorTypeId] ?? ""}`,
+			minValue,
 			sensorData: filteredData.map((data) => ({
 				value: data.value,
 				// label: dayjs(data.createdAt).format("HH:mm:ss"),
 			})),
-      thresholdWarning,
+			thresholdWarning,
 		};
 	});
 }
 
 interface GetSensorsDataOptions {
-  sensorId?: number;
-  startDate?: string;
-  endDate?: string;
+	sensorId?: number;
+	startDate?: string;
+	endDate?: string;
+	query?: string;
+	sensorTypeIds?: number[];
 }

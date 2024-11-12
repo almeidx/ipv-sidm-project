@@ -7,12 +7,14 @@ export const createSensor: FastifyPluginAsyncZod = async (app) => {
 		"/sensors",
 		{
 			schema: {
-				body: z.object({
-					name: z.string().min(3).max(32),
-					sensorType: z.number().int().min(1),
-					minThreshold: z.number(),
-					maxThreshold: z.number(),
-				}).refine((data) => data.minThreshold < data.maxThreshold),
+				body: z
+					.object({
+						name: z.string().min(3).max(32),
+						sensorType: z.number().int().min(1),
+						minThreshold: z.number(),
+						maxThreshold: z.number(),
+					})
+					.refine((data) => data.minThreshold < data.maxThreshold),
 				response: {
 					201: z.object({ id: z.number().int().positive() }),
 					409: z.object({ message: z.string() }),

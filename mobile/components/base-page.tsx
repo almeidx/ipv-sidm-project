@@ -1,37 +1,34 @@
+import { useRouter } from "expo-router";
 import type { PropsWithChildren } from "react";
-import { Image, View, Text, TouchableOpacity } from "react-native";
+import { Image, View, Text, TouchableOpacity, Button, Touchable } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { FontAwesome } from "@expo/vector-icons";
-import { Link } from "expo-router";
 
 interface BasePageProps {
 	title?: string;
-	isModal?: boolean;
+	rightSide?: React.ReactNode;
 }
 
 export function BasePage({
 	children,
 	title,
-	isModal,
+	rightSide,
 }: PropsWithChildren<BasePageProps>) {
+	const router = useRouter();
+
 	return (
 		<ScrollView
 			contentContainerClassName="pt-10"
 			contentContainerStyle={{ paddingBottom: 46 }}
 		>
-			<View className="flex flex-row justify-between items-center px-8">
-				{isModal ? (
-					<Link href="../">
-						<FontAwesome name="arrow-left" size={24} color="black" />
-					</Link>
-				) : <View />}
+			<View className="flex flex-row justify-between items-center" style={{ paddingHorizontal: 20 }}>
+				<TouchableOpacity onPress={() => router.push("/")} activeOpacity={1}>
+					<Image
+						source={require("../assets/images/logo-black.png")}
+						className="size-40"
+					/>
+				</TouchableOpacity>
 
-				<Image
-					source={require("../assets/images/logo-black.png")}
-					className="size-40"
-				/>
-
-				<View />
+				{rightSide}
 			</View>
 
 			{title ? (

@@ -12,16 +12,16 @@ import {
 } from "fastify-type-provider-zod";
 import { env } from "#lib/env.ts";
 import { getStatus } from "#routes/get-status.ts";
+import { getNotifications } from "#routes/notifications/get-notifications.ts";
+import { markNotificationAsRead } from "#routes/notifications/mark-notification-as-read.ts";
 import { createSensor } from "#routes/sensors/create-sensor.ts";
 import { getSensorData } from "#routes/sensors/data/get-sensor-data.ts";
 import { getSensorsData } from "#routes/sensors/data/get-sensors-data.ts";
 import { getSensors } from "#routes/sensors/get-sensors.ts";
+import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
-import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
-import { getNotifications } from "#routes/notifications/get-notifications.ts";
-import { markNotificationAsRead } from "#routes/notifications/mark-notification-as-read.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 

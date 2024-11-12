@@ -1,4 +1,4 @@
-import { FontAwesome } from "@expo/vector-icons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import dayjs from "dayjs";
 import "dayjs/locale/pt";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -9,6 +9,8 @@ import { BasePage } from "../../components/base-page";
 import type { GetNotificationsResult } from "../../utils/api-types";
 import { API_URL } from "../../utils/constants";
 import { getSensorIcon } from "../../utils/get-sensor-icon";
+import { makeApiRequest } from "../../utils/make-api-request";
+
 
 dayjs.locale("pt");
 dayjs.extend(relativeTime);
@@ -23,46 +25,43 @@ export default function Notifications() {
 	useEffect(() => {
 		async function getNotifications() {
 			try {
-				const response = await fetch(`${API_URL}/notifications`, {
+				const { data } = await makeApiRequest<GetNotificationsResult>("/notifications", {
 					method: "GET",
 					headers: {
 						"Content-Type": "application/json",
 					},
+					failMessage: "Failed to fetch notifications",
 				});
 
-				if (!response.ok) {
-					throw new Error(`Failed to fetch notifications: ${response.status}`);
+				if (data) {
+					const formattedNotifications = data.notifications.map((notification) => {
+						let message = "";
+
+						switch (notification.thresholdSurpassed) {
+							case 0:
+								message = `${notification.sensor.name} voltou ao normal.`;
+								break;
+							case 1:
+								message = `${notification.sensor.name} passou o threshold de baixo.`;
+								break;
+							case 2:
+								message = `${notification.sensor.name} passou o threshold de cima.`;
+								break;
+							default:
+								message = "Status desconhecido";
+						}
+
+						const formattedDate = dayjs(notification.createdAt).fromNow();
+
+						return {
+							...notification,
+							message,
+							formattedDate,
+						};
+					});
+
+					setNotifications(formattedNotifications);
 				}
-
-				const data: GetNotificationsResult = await response.json();
-
-				const formattedNotifications = data.notifications.map((notification) => {
-					let message = "";
-
-					switch (notification.thresholdSurpassed) {
-						case 0:
-							message = `${notification.sensor.name} voltou ao normal.`;
-							break;
-						case 1:
-							message = `${notification.sensor.name} passou o threshold de baixo.`;
-							break;
-						case 2:
-							message = `${notification.sensor.name} passou o threshold de cima.`;
-							break;
-						default:
-							message = "Status desconhecido";
-					}
-
-					const formattedDate = dayjs(notification.createdAt).fromNow();
-
-					return {
-						...notification,
-						message,
-						formattedDate,
-					};
-				});
-
-				setNotifications(formattedNotifications);
 			} catch (error) {
 				console.error("Error fetching notifications:", error);
 			} finally {

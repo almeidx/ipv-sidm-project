@@ -5,8 +5,8 @@ import RNPickerSelect from "react-native-picker-select";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
-import { API_URL } from "../../utils/constants";
 import type { GetSensorTypesResult } from "../../utils/api-types";
+import { makeApiRequest } from "../../utils/make-api-request";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");
@@ -17,29 +17,15 @@ export default function CreateSensor() {
 	const [minThreshold, setMinThreshold] = useState("");
 
 	useEffect(() => {
-		async function getSensorTypes() {
-			try {
-				const response = await fetch(`${API_URL}/sensors/types`, {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error(`Failed to fetch sensor types: ${response.status}`);
+		makeApiRequest<GetSensorTypesResult>("/sensors/types", { failMessage: "Failed to fetch sensor types" })
+			.then(({ data }) => {
+				if (data) {
+					setSensorTypes(data.sensorTypes);
 				}
-
-				const data = (await response.json()) as GetSensorTypesResult;
-				setSensorTypes(data.sensorTypes);
-			} catch (error) {
-				console.error("Error fetching sensor types:", error);
-			} finally {
+			})
+			.finally(() => {
 				setLoading(false);
-			}
-		}
-
-		getSensorTypes();
+			})
 	}, []);
 
 	async function handleCreate() {
@@ -52,7 +38,7 @@ export default function CreateSensor() {
 		}
 
 		try {
-			const response = await fetch(`${API_URL}/sensors`, {
+			const { data, response } = await makeApiRequest<{ id: string }>("/sensors", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -63,19 +49,19 @@ export default function CreateSensor() {
 					maxThreshold: maxThresholdNumber,
 					minThreshold: minThresholdNumber,
 				}),
+				failMessage: "An error occurred. Please try again later",
 			});
 
 			switch (response.status) {
 				case 201: {
-					const { sensor } = await response.json();
 					toast.success("Sensor created successfully");
 					break;
 				}
 
 				case 400: {
-					const message = await response.json();
+					const message = data;
 					console.error("Invalid input data", message);
-					toast.error(`Invalid input data ${JSON.stringify(message.details.issues[0].params.issue.message)}`);
+					toast.error('Invalid input data');
 					break;
 				}
 
@@ -85,7 +71,7 @@ export default function CreateSensor() {
 				}
 
 				default: {
-					console.error("Unknown error occurred", response.status, await response.text());
+					console.error("Unknown error occurred", response.status);
 					toast.error("Unknown error occurred");
 					break;
 				}

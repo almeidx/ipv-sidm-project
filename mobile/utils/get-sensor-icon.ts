@@ -1,4 +1,4 @@
-import { FontAwesome }from "@expo/vector-icons";
+import type FontAwesome from "@expo/vector-icons/FontAwesome";
 import { ComponentProps } from "react";
 
 export function getSensorIcon(sensorTypeId: number): ComponentProps<typeof FontAwesome>['name'] {

@@ -2,6 +2,7 @@
 	"name": "simulator",
 	"type": "module",
 	"scripts": {
+		"fmt": "biome check --write",
 		"start": "node --experimental-transform-types src/index.ts",
 		"start-devices": "node --experimental-transform-types src/start-devices.ts",
 		"start:temperature": "SENSOR_ID=236f02b0-ac71-4b22-b11d-94003fe3d8f5 SENSOR_TYPE_ID=1 SENSOR_TYPE_INDEX=0 node --env-file=.env --experimental-transform-types src/index.ts"

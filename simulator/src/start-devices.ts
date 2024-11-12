@@ -13,40 +13,32 @@ const devices = [
 	{ sensorId: 9, sensorTypeId: 4, indexOfType: 1 },
 	{ sensorId: 10, sensorTypeId: 5, indexOfType: 0 },
 	{ sensorId: 11, sensorTypeId: 5, indexOfType: 1 },
-] satisfies { sensorId: number; sensorTypeId: number, indexOfType: number }[];
+] satisfies { sensorId: number; sensorTypeId: number; indexOfType: number }[];
 
 console.log("Starting devices...");
 
 const children: ChildProcess[] = [];
 
 for (const { sensorId, sensorTypeId, indexOfType } of devices) {
-	const child = spawn(
-		"node",
-		["--experimental-transform-types", "--env-file=.env", "src/index.ts"],
-		{
-			env: {
-				...process.env,
-				SENSOR_ID: sensorId.toString(),
-				SENSOR_TYPE_ID: sensorTypeId.toString(),
-        SENSOR_TYPE_INDEX: indexOfType.toString(),
-			},
-			stdio: "inherit",
+	const child = spawn("node", ["--experimental-transform-types", "--env-file=.env", "src/index.ts"], {
+		env: {
+			...process.env,
+			SENSOR_ID: sensorId.toString(),
+			SENSOR_TYPE_ID: sensorTypeId.toString(),
+			SENSOR_TYPE_INDEX: indexOfType.toString(),
 		},
-	);
+		stdio: "inherit",
+	});
 
 	children.push(child);
 
 	child
-		.on("exit", (code, signal) =>
-			console.error(`${sensorId} exited`, { code, signal }),
-		)
+		.on("exit", (code, signal) => console.error(`${sensorId} exited`, { code, signal }))
 		.on("error", (err) => console.error(`Device ${sensorId} errored:`, err))
-		.on("close", (code, signal) =>
-			console.error(`${sensorId} closed`, { code, signal }),
-		)
+		.on("close", (code, signal) => console.error(`${sensorId} closed`, { code, signal }))
 		.on("disconnect", () => console.error(`Device ${sensorId} disconnected`));
 
-  await sleep(random(1_000, 5_000));
+	await sleep(random(1_000, 5_000));
 }
 
 process.on("SIGINT", () => {
@@ -60,5 +52,5 @@ process.on("SIGINT", () => {
 });
 
 function random(min: number, max: number): number {
-  return Math.random() * (max - min) + min;
+	return Math.random() * (max - min) + min;
 }

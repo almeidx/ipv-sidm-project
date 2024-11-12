@@ -13,9 +13,11 @@ export default function ModalScreen() {
 	const [selectedSensorTypes, setSelectedSensorTypes] = useState<number[]>([]);
 
 	useEffect(() => {
-		makeApiRequest<GetSensorTypesResult>("/sensors/types").then((data) =>
-			setSensorTypes(data.sensorTypes)
-		);
+		makeApiRequest<GetSensorTypesResult>("/sensors/types").then(({ data }) => {
+			if (data) {
+				setSensorTypes(data.sensorTypes)
+			}
+		});
 	}, []);
 
 	function handleSensorTypeChange(

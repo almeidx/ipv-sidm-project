@@ -10,6 +10,12 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 				querystring: z.object({
 					startDate: z.string().datetime().optional(),
 					endDate: z.string().datetime().optional(),
+					query: z.string().optional(),
+					sensorTypes: z
+						.string()
+						.regex(/^\d+(,\d+)*$/)
+						.optional(),
+					order: z.union([z.literal("asc"), z.literal("desc")]).optional(),
 				}),
 				response: {
 					200: z.object({
@@ -19,8 +25,11 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 			},
 		},
 		async (request) => {
-			const { startDate, endDate } = request.query;
-			const data = await getSensorsDataImpl({ startDate, endDate });
+			const { startDate, endDate, query, sensorTypes } = request.query;
+
+			const sensorTypeIds = sensorTypes?.split(",").map(Number);
+
+			const data = await getSensorsDataImpl({ startDate, endDate, query, sensorTypeIds });
 			return { sensors: data };
 		},
 	);

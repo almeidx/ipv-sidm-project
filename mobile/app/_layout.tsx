@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -26,6 +27,7 @@ export default function RootLayout() {
 	const [loaded, error] = useFonts({
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 		...FontAwesome.font,
+		...Ionicons.font,
 	});
 
 	// Expo Router uses Error Boundaries to catch errors in the navigation tree.
