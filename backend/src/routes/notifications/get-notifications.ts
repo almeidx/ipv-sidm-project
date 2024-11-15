@@ -56,6 +56,7 @@ export const getNotifications: FastifyPluginAsyncZod = async (app) => {
 				orderBy: {
 					createdAt: "desc",
 				},
+				take: 100,
 			});
 
 			return {

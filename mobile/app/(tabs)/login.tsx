@@ -1,10 +1,12 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { API_URL } from "../../utils/constants"
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
-import { LinearGradient } from 'expo-linear-gradient';
+import { BasePage } from "../../components/base-page";
+import { Input } from "../../components/input";
+import { API_URL } from "../../lib/constants";
+import { Button } from "../../components/button";
 
 export default function Login() {
 	const router = useRouter();
@@ -27,7 +29,7 @@ export default function Login() {
 
 			switch (response.status) {
 				case 200: {
-					const { token } = await response.json() as { token: string };
+					const { token } = (await response.json()) as { token: string };
 
 					await AsyncStorage.setItem("token", token);
 
@@ -53,7 +55,11 @@ export default function Login() {
 				}
 
 				default: {
-					console.error("Unknown error occurred", response.status, await response.text());
+					console.error(
+						"Unknown error occurred",
+						response.status,
+						await response.text(),
+					);
 					toast.error("Unknown error occurred");
 					break;
 				}
@@ -65,45 +71,32 @@ export default function Login() {
 	}
 
 	return (
-		<View className="flex-1 items-center pt-9 flex flex-col gap-20 h-full">
-			<View className="flex flex-col size-full items-center justify-between">
-				<Image
-					source={require("../../assets/images/logo-white.png")}
-					className="size-40"
+		<BasePage centerContent>
+			<View className="flex-1 justify-center items-center w-full gap-6 px-5">
+				<Input
+					placeholder="Email"
+					textContentType="emailAddress"
+					value={email}
+					onChangeText={setEmail}
 				/>
 
-				<View className="flex flex-col gap-4 items-center w-full">
-					<TextInput
-						className="w-11/12 px-4 h-14 border-2 border-gray-300 rounded-lg bg-white/10 placeholder:text-white"
-						placeholder="Email"
-						textContentType="emailAddress"
-						value={email}
-						onChangeText={(text) => setEmail(text)}
-					/>
+				<Input
+					placeholder="Password"
+					secureTextEntry
+					textContentType="password"
+					value={password}
+					onChangeText={setPassword}
+				/>
 
-					<TextInput
-						className="w-11/12 px-4 h-14 border-2 border-gray-300 rounded-lg bg-white/10 placeholder:text-white"
-						placeholder="Password"
-						secureTextEntry={true}
-						textContentType="password"
-						value={password}
-						onChangeText={(text) => setPassword(text)}
-					/>
-
-					<TouchableOpacity className="flex items-center justify-center bg-zinc-300 rounded-3xl w-11/12 h-14" onPress={handleLogin}>
-						<Text className="text-black text-xl font-bold">Login</Text>
-					</TouchableOpacity>
-				</View>
-
-				<Link href="/sign-up" className="text-white text-center leading-[3.5rem] text-xl font-bold rounded-3xl w-11/12 h-14 mb-6 border border-white">
-					Create new account
-				</Link>
+				<Button title="Login" onPress={handleLogin} />
 			</View>
 
-			<LinearGradient
-				colors={['#1E3A8A', '#0369A1']}
-				className="absolute -z-10 h-screen-safe w-full"
-			/>
-		</View>
+			<View className="justify-center items-center w-full gap-6 px-5">
+				<Button
+					title="Create new account"
+					onPress={() => router.push("/sign-up")}
+				/>
+			</View>
+		</BasePage>
 	);
 }

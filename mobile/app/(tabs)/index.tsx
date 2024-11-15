@@ -4,11 +4,13 @@ import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
+import Popover from "react-native-popover-view";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
-import type { GetSensorsDataResult } from "../../utils/api-types";
-import { getSensorIcon } from "../../utils/get-sensor-icon";
-import { makeApiRequest } from "../../utils/make-api-request";
+import type { GetSensorsDataResult } from "../../lib/api-types";
+import { getSensorIcon } from "../../lib/get-sensor-icon";
+import { makeApiRequest } from "../../lib/make-api-request";
+import { SensorsFilterPopover } from "../../components/sensors-filter-popover";
 
 const FETCH_SENSORS_DATA_INTERVAL = 3 * 1_000;
 
@@ -68,9 +70,9 @@ export default function Home() {
 					/>
 				</View>
 
-				<Link href="/sensor-filter-modal">
-					<FontAwesome size={24} name="bars" />
-				</Link>
+				<Popover from={<FontAwesome size={24} name="bars" />}>
+					<SensorsFilterPopover />
+				</Popover>
 			</View>
 
 			<View className="flex flex-col w-full mt-4 gap-6">

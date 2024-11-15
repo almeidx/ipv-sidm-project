@@ -1,5 +1,5 @@
 import type FontAwesome from "@expo/vector-icons/FontAwesome";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 export function getSensorIcon(sensorTypeId: number): ComponentProps<typeof FontAwesome>['name'] {
 	switch (sensorTypeId) {
@@ -16,7 +16,7 @@ export function getSensorIcon(sensorTypeId: number): ComponentProps<typeof FontA
 			return "magnet";
 
 		case 5: // Flow Rate
-			return "google-wallet";
+			return "drivers-license";
 
 		default:
 			return "question";

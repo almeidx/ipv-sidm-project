@@ -5,8 +5,8 @@ import RNPickerSelect from "react-native-picker-select";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
-import type { GetSensorTypesResult } from "../../utils/api-types";
-import { makeApiRequest } from "../../utils/make-api-request";
+import type { GetSensorTypesResult } from "../../lib/api-types";
+import { makeApiRequest } from "../../lib/make-api-request";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");

@@ -6,10 +6,10 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
-import type { GetNotificationsResult } from "../../utils/api-types";
-import { API_URL } from "../../utils/constants";
-import { getSensorIcon } from "../../utils/get-sensor-icon";
-import { makeApiRequest } from "../../utils/make-api-request";
+import type { GetNotificationsResult } from "../../lib/api-types";
+import { API_URL } from "../../lib/constants";
+import { getSensorIcon } from "../../lib/get-sensor-icon";
+import { makeApiRequest } from "../../lib/make-api-request";
 
 
 dayjs.locale("pt");
