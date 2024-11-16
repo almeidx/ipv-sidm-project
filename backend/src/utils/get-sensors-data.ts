@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
+import { type SensorCategory, SensorOrder } from "./sensor-filters.ts";
 
 export const singleSensorDataSchema = z.object({
 	id: z.number().int().positive(),
@@ -24,6 +25,9 @@ export async function getSensorsDataImpl({
 	endDate: rawEndDate,
 	query,
 	sensorTypeIds,
+	category,
+	order = SensorOrder.CreatedAt,
+	sensorIds,
 }: GetSensorsDataOptions) {
 	const startDate = rawStartDate ? dayjs(rawStartDate) : dayjs().subtract(1, "week");
 	const endDate = rawEndDate ? dayjs(rawEndDate) : null;
@@ -45,6 +49,31 @@ export async function getSensorsDataImpl({
 		};
 	}
 
+	if (sensorIds) {
+		sensorWhere.id = {
+			in: sensorIds,
+		};
+	}
+
+	const orderBy: Prisma.SensorOrderByWithRelationInput[] = [];
+
+	switch (order) {
+		case SensorOrder.NameAsc:
+			orderBy.push({ name: "asc" });
+			break;
+		case SensorOrder.NameDesc:
+			orderBy.push({ name: "desc" });
+			break;
+		case SensorOrder.TypeAsc:
+			orderBy.push({ sensorTypeId: "asc" });
+			break;
+		case SensorOrder.TypeDesc:
+			orderBy.push({ sensorTypeId: "desc" });
+			break;
+	}
+
+	orderBy.push({ createdAt: "asc" });
+
 	const sensors = await prisma.sensor.findMany({
 		where: sensorWhere,
 		select: {
@@ -62,9 +91,7 @@ export async function getSensorsDataImpl({
 						...(endDate ? { lte: endDate.toDate() } : {}),
 					},
 				},
-				orderBy: {
-					createdAt: "asc",
-				},
+				orderBy,
 			},
 			maxThreshold: true,
 			minThreshold: true,
@@ -121,4 +148,7 @@ interface GetSensorsDataOptions {
 	endDate?: string;
 	query?: string;
 	sensorTypeIds?: number[];
+	category?: SensorCategory;
+	order?: SensorOrder;
+	sensorIds?: number[];
 }

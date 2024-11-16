@@ -1,7 +1,7 @@
 import type FontAwesome from "@expo/vector-icons/FontAwesome";
 import type { ComponentProps } from "react";
 
-export function getSensorIcon(sensorTypeId: number): ComponentProps<typeof FontAwesome>['name'] {
+export function getSensorIcon(sensorTypeId: number): ComponentProps<typeof FontAwesome>["name"] {
 	switch (sensorTypeId) {
 		case 1: // Temperature
 			return "thermometer-half";

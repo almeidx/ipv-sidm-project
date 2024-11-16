@@ -1,6 +1,7 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { getSensorsDataImpl, singleSensorDataSchema } from "#utils/get-sensors-data.ts";
+import { SensorCategory, SensorOrder } from "../../../utils/sensor-filters.ts";
 
 export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 	app.get(
@@ -15,7 +16,12 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 						.string()
 						.regex(/^\d+(,\d+)*$/)
 						.optional(),
-					order: z.union([z.literal("asc"), z.literal("desc")]).optional(),
+					order: z.nativeEnum(SensorOrder).optional(),
+					category: z.nativeEnum(SensorCategory).optional(),
+					sensors: z
+						.string()
+						.regex(/^\d+(,\d+)*$/)
+						.optional(),
 				}),
 				response: {
 					200: z.object({
@@ -25,11 +31,21 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 			},
 		},
 		async (request) => {
-			const { startDate, endDate, query, sensorTypes } = request.query;
+			const { startDate, endDate, query, sensorTypes, category, order, sensors } = request.query;
 
 			const sensorTypeIds = sensorTypes?.split(",").map(Number);
+			const sensorIds = sensors?.split(",").map(Number);
 
-			const data = await getSensorsDataImpl({ startDate, endDate, query, sensorTypeIds });
+			const data = await getSensorsDataImpl({
+				startDate,
+				endDate,
+				query,
+				sensorTypeIds,
+				category,
+				order,
+				sensorIds,
+			});
+
 			return { sensors: data };
 		},
 	);

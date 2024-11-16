@@ -1,14 +1,13 @@
-import { Link, useRouter } from "expo-router";
-import { Image, View, Text, TouchableOpacity } from "react-native";
-import { API_URL } from "../../lib/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useState } from "react";
-import { toast } from "sonner-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Input } from "../../components/input";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Button } from "../../components/button";
-
+import { Input } from "../../components/input";
+import { API_URL } from "../../lib/constants";
 
 export default function SignUp() {
 	const router = useRouter();
@@ -73,15 +72,8 @@ export default function SignUp() {
 
 	return (
 		<BasePage centerContent>
-
-
 			<View className="flex flex-col gap-4 items-center w-full px-5">
-				<Input
-					placeholder="Nome"
-					textContentType="name"
-					value={name}
-					onChangeText={(text) => setName(text)}
-				/>
+				<Input placeholder="Nome" textContentType="name" value={name} onChangeText={(text) => setName(text)} />
 
 				<Input
 					placeholder="Email"
@@ -106,20 +98,11 @@ export default function SignUp() {
 					onChangeText={(text) => setConfirmPassword(text)}
 				/>
 
-				<Button
-					title="Create"
-					onPress={handleRegister}
-				/>
-
-
+				<Button title="Create" onPress={handleRegister} />
 			</View>
 
-			<View className="flex-col gap-9 items-center w-full px-5" >
-				<Button
-					title="Login"
-					variant="outline"
-					onPress={() => router.push("/login")}
-				/>
+			<View className="flex-col gap-9 items-center w-full px-5">
+				<Button title="Login" variant="outline" onPress={() => router.push("/login")} />
 			</View>
 		</BasePage>
 	);

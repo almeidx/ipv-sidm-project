@@ -4,15 +4,16 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
 import "../global.css";
+import { SensorFiltersProvider } from "../contexts/sensor-filters-context";
 
 export {
 	// Catch any errors thrown by the Layout component.
-	ErrorBoundary
+	ErrorBoundary,
 } from "expo-router";
 
 export const unstable_settings = {
@@ -52,12 +53,14 @@ function RootLayoutNav() {
 	return (
 		<SafeAreaProvider>
 			<GestureHandlerRootView>
-				<Stack>
-					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-					{/* <Stack.Screen name="sensor-filter-modal" options={{ presentation: "modal", headerShown: false }} /> */}
-				</Stack>
+				<SensorFiltersProvider>
+					<Stack>
+						<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+						{/* <Stack.Screen name="sensor-filter-modal" options={{ presentation: "modal", headerShown: false }} /> */}
+					</Stack>
 
-				<Toaster position="bottom-center" />
+					<Toaster position="bottom-center" />
+				</SensorFiltersProvider>
 			</GestureHandlerRootView>
 		</SafeAreaProvider>
 	);

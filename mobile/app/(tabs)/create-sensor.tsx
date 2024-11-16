@@ -11,7 +11,7 @@ import { makeApiRequest } from "../../lib/make-api-request";
 export default function CreateSensor() {
 	const [name, setName] = useState("");
 	const [selectedValue, setSelectedValue] = useState("1");
-	const [sensorTypes, setSensorTypes] = useState<GetSensorTypesResult['sensorTypes']>([]);
+	const [sensorTypes, setSensorTypes] = useState<GetSensorTypesResult["sensorTypes"]>([]);
 	const [isLoading, setLoading] = useState(true);
 	const [maxThreshold, setMaxThreshold] = useState("");
 	const [minThreshold, setMinThreshold] = useState("");
@@ -25,7 +25,7 @@ export default function CreateSensor() {
 			})
 			.finally(() => {
 				setLoading(false);
-			})
+			});
 	}, []);
 
 	async function handleCreate() {
@@ -61,7 +61,7 @@ export default function CreateSensor() {
 				case 400: {
 					const message = data;
 					console.error("Invalid input data", message);
-					toast.error('Invalid input data');
+					toast.error("Invalid input data");
 					break;
 				}
 
@@ -115,8 +115,8 @@ export default function CreateSensor() {
 							},
 							...sensorTypes.map((type) => ({
 								label: type.name,
-								value: type.id.toString()
-							}))
+								value: type.id.toString(),
+							})),
 						]}
 						value={selectedValue}
 						style={{
@@ -136,7 +136,6 @@ export default function CreateSensor() {
 								color: "#999999",
 								textAlign: "left",
 								paddingLeft: 20,
-
 							},
 						}}
 						doneText=""
@@ -144,8 +143,6 @@ export default function CreateSensor() {
 						placeholder={{}}
 					/>
 				</View>
-
-
 
 				<Input
 					placeholder="Limite Minimo"
@@ -169,7 +166,8 @@ export default function CreateSensor() {
 
 				<TouchableOpacity
 					className="flex flex-row gap-3 items-center justify-center bg-zinc-300 rounded-3xl w-11/12 h-14"
-					onPress={handleCreate}>
+					onPress={handleCreate}
+				>
 					<FontAwesome size={25} name="plus-circle" />
 					<Text className="text-black text-xl font-bold">Adicionar Sensor</Text>
 				</TouchableOpacity>

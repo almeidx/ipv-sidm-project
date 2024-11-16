@@ -1,5 +1,5 @@
-import type { ComponentProps } from 'react';
-import { TextInput, View } from 'react-native';
+import type { ComponentProps } from "react";
+import { TextInput, View } from "react-native";
 
 export function Input(props: InputProps) {
 	return (
@@ -14,4 +14,4 @@ export function Input(props: InputProps) {
 	);
 }
 
-type InputProps = Omit<ComponentProps<typeof TextInput>, "className">
+type InputProps = Omit<ComponentProps<typeof TextInput>, "className">;

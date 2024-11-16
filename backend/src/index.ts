@@ -10,8 +10,10 @@ import {
 	serializerCompiler,
 	validatorCompiler,
 } from "fastify-type-provider-zod";
+import prettyMs from "pretty-ms";
 import { env } from "#lib/env.ts";
 import { getStatus } from "#routes/get-status.ts";
+import { clearNotifications } from "#routes/notifications/clear-notifications.ts";
 import { getNotifications } from "#routes/notifications/get-notifications.ts";
 import { markNotificationAsRead } from "#routes/notifications/mark-notification-as-read.ts";
 import { createSensor } from "#routes/sensors/create-sensor.ts";
@@ -72,8 +74,14 @@ app.setErrorHandler((err, req, reply) => {
 	reply.send(err);
 });
 
+app.addHook("onResponse", (request, reply, done) => {
+	console.info("Request completed", request.method, request.url, reply.statusCode, prettyMs(reply.elapsedTime));
+	done();
+});
+
 await app.register(async (instance) => {
 	// notifications
+	await instance.register(clearNotifications);
 	await instance.register(getNotifications);
 	await instance.register(markNotificationAsRead);
 

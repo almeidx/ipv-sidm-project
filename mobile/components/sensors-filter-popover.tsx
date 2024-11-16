@@ -2,12 +2,14 @@ import Checkbox from "expo-checkbox";
 import { useEffect, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native";
-import type { GetSensorTypesResult } from "../lib/api-types";
-import { makeApiRequest } from "../lib/make-api-request";
-import { CacheKey, findOrCreate } from "../lib/cache";
 import DropdownSelect from "react-native-input-select";
+import { useSensorFilters } from "../contexts/sensor-filters-context";
+import type { GetSensorTypesResult } from "../lib/api-types";
+import { CacheKey, findOrCreate } from "../lib/cache";
+import { makeApiRequest } from "../lib/make-api-request";
 
 const orderOptions = [
+	{ label: "Data de criação", value: "created-at" },
 	{ label: "Nome (A-Z)", value: "name-asc" },
 	{ label: "Nome (Z-A)", value: "name-desc" },
 	{ label: "Tipo (A-Z)", value: "type-asc" },
@@ -22,46 +24,35 @@ const categoryOptions = [
 ];
 
 export function SensorsFilterPopover() {
-	const [sensorTypes, setSensorTypes] = useState<
-		GetSensorTypesResult["sensorTypes"]
-	>([]);
-	const [selectedSensorTypes, setSelectedSensorTypes] = useState<number[]>([]);
-	const [order, setOrder] = useState<string>("type-asc");
+	const [sensorTypesOptions, setSensorTypesOptions] = useState<GetSensorTypesResult["sensorTypes"]>([]);
 
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
+	const { categories, order, sensorTypes, setCategories, setOrder, setSensorTypes } = useSensorFilters();
 	const { width: screenWidth } = Dimensions.get("window");
 
 	useEffect(() => {
 		async function getSensorTypes() {
-			const sensorTypes = await findOrCreate(
+			const sensorTypesData = await findOrCreate(
 				CacheKey.SensorTypes,
 				async () => {
-					const { data } =
-						await makeApiRequest<GetSensorTypesResult>("/sensors/types");
-					// biome-ignore lint/style/noNonNullAssertion: <explanation>
+					const { data } = await makeApiRequest<GetSensorTypesResult>("/sensors/types");
 					return data!.sensorTypes;
 				},
 				30 * 60,
 			);
 
-			setSensorTypes(sensorTypes);
+			setSensorTypesOptions(sensorTypesData);
 		}
 
 		getSensorTypes();
 	}, []);
 
-	function handleSensorTypeChange(
-		sensorType: GetSensorTypesResult["sensorTypes"][0],
-	) {
-		const wasSelected = selectedSensorTypes.indexOf(sensorType.id) !== -1;
+	function handleSensorTypeChange(sensorType: GetSensorTypesResult["sensorTypes"][0]) {
+		const wasSelected = sensorTypes.indexOf(sensorType.id) !== -1;
 
 		if (wasSelected) {
-			setSelectedSensorTypes((prev) =>
-				prev.filter((id) => id !== sensorType.id),
-			);
+			setSensorTypes((prev) => prev.filter((id) => id !== sensorType.id));
 		} else {
-			setSelectedSensorTypes((prev) => [...prev, sensorType.id]);
+			setSensorTypes((prev) => [...prev, sensorType.id]);
 		}
 	}
 
@@ -77,17 +68,12 @@ export function SensorsFilterPopover() {
 				<Text className="text-2xl font-bold">Tipos de sensores</Text>
 
 				<View>
-					{sensorTypes.map((sensorType, idx) => (
-						<TouchableOpacity
-							key={sensorType.id}
-							onPress={() => handleSensorTypeChange(sensorType)}
-						>
+					{sensorTypesOptions.map((sensorType, idx) => (
+						<TouchableOpacity key={sensorType.id} onPress={() => handleSensorTypeChange(sensorType)}>
 							<View
 								className={`flex flex-row items-center py-4 gap-4 ${idx === sensorTypes.length - 1 ? "" : "border-b border-gray-300"}`}
 							>
-								<Checkbox
-									value={selectedSensorTypes.indexOf(sensorType.id) !== -1}
-								/>
+								<Checkbox value={sensorTypes.indexOf(sensorType.id) !== -1} />
 								<Text className="">{sensorType.name}</Text>
 							</View>
 						</TouchableOpacity>
@@ -125,21 +111,19 @@ export function SensorsFilterPopover() {
 						<TouchableOpacity
 							key={category.value}
 							onPress={() => {
-								const isSelected = selectedCategories.includes(category.value);
+								const isSelected = categories.includes(category.value);
 
 								if (isSelected) {
-									setSelectedCategories((prev) =>
-										prev.filter((v) => v !== category.value),
-									);
+									setCategories((prev) => prev.filter((v) => v !== category.value));
 								} else {
-									setSelectedCategories((prev) => [...prev, category.value]);
+									setCategories((prev) => [...prev, category.value]);
 								}
 							}}
 						>
 							<View
 								className={`flex flex-row items-center py-4 gap-4 ${idx === categoryOptions.length - 1 ? "" : "border-b border-gray-300"}`}
 							>
-								<Checkbox value={selectedCategories.includes(category.value)} />
+								<Checkbox value={categories.includes(category.value)} />
 								<Text>{category.label}</Text>
 							</View>
 						</TouchableOpacity>

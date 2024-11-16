@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
+import * as SecureStorage from "expo-secure-store";
 import type React from "react";
 
 function TabBarIcon(props: {
@@ -10,6 +11,8 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+	const isLoggedIn = SecureStorage.getItem("authToken");
+
 	return (
 		<Tabs
 			screenOptions={{
@@ -26,6 +29,7 @@ export default function TabLayout() {
 					height: 60,
 					paddingBottom: 10,
 				},
+				tabBarHideOnKeyboard: true,
 			}}
 		>
 			<Tabs.Screen
@@ -40,24 +44,32 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => <TabBarIcon name="notifications" color={color} />,
 				}}
 			/>
-			<Tabs.Screen
-				name="login"
-				options={{
-					tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
-				}}
-			/>
-			<Tabs.Screen
-				name="create-sensor"
-				options={{
-					href: null,
-				}}
-			/>
-			<Tabs.Screen
-				name="sign-up"
-				options={{
-					href: null,
-				}}
-			/>
+			{isLoggedIn ? (
+				<Tabs.Screen
+					name="profile"
+					options={{
+						tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
+					}}
+				/>
+			) : (
+				<Tabs.Screen
+					name="login"
+					options={{
+						tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
+					}}
+				/>
+			)}
+
+			{/* These need to be split because we can't use Fragments in the <Tabs> children */}
+			{isLoggedIn ? (
+				<Tabs.Screen name="login" options={{ href: null }} />
+			) : (
+				<Tabs.Screen name="profile" options={{ href: null }} />
+			)}
+
+			<Tabs.Screen name="create-sensor" options={{ href: null }} />
+			<Tabs.Screen name="sign-up" options={{ href: null }} />
+			<Tabs.Screen name="sensor-details/[sensorId]" options={{ href: null }} />
 		</Tabs>
 	);
 }

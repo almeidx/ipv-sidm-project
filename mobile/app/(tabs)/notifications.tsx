@@ -1,16 +1,17 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import dayjs from "dayjs";
 import "dayjs/locale/pt";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import type { GetNotificationsResult } from "../../lib/api-types";
 import { API_URL } from "../../lib/constants";
 import { getSensorIcon } from "../../lib/get-sensor-icon";
 import { makeApiRequest } from "../../lib/make-api-request";
-
 
 dayjs.locale("pt");
 dayjs.extend(relativeTime);
@@ -83,8 +84,7 @@ export default function Notifications() {
 				throw new Error("Failed to mark notification as read");
 			}
 
-			setNotifications((prevNotifications) => prevNotifications.filter((notification) => notification.id !== id)
-			);
+			setNotifications((prevNotifications) => prevNotifications.filter((notification) => notification.id !== id));
 
 			toast.info("Notificação marcada como lida");
 		} catch (error) {
@@ -92,17 +92,55 @@ export default function Notifications() {
 		}
 	}
 
+	async function clearAllNotifications() {
+		try {
+			const response = await makeApiRequest("/notifications/clear", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				failMessage: "Falha ao limpar notificações",
+			});
+
+			if (response) {
+				setNotifications([]);
+				Alert.alert("Sucesso", "Todas as notificações foram removidas!");
+			}
+		} catch (error) {
+			console.error("Erro ao limpar notificações:", error);
+			Alert.alert("Erro", "Falha ao limpar notificações.");
+		}
+	}
+
+	function confirmClearNotifications() {
+		Alert.alert("Confirmar", "Tem a certeza de que deseja remover todas as notificações?", [
+			{
+				text: "Cancelar",
+				style: "cancel",
+			},
+			{
+				text: "Remover",
+				style: "destructive",
+				onPress: clearAllNotifications,
+			},
+		]);
+	}
+
 	return (
-		<BasePage title="Notifications">
+		<BasePage
+			title="Notificações"
+			rightSide={
+				<TouchableOpacity onPress={confirmClearNotifications}>
+					<Ionicons size={32} name="checkmark-done-outline" />
+				</TouchableOpacity>
+			}
+		>
 			<View className="flex flex-col w-full">
 				{isLoading ? (
 					<ActivityIndicator size="large" color="blue" />
 				) : (
 					notifications.map(({ id, sensor, message, value, formattedDate, thresholdSurpassed }) => (
-						<View
-							key={id}
-							className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300"
-						>
+						<View key={id} className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300">
 							<View className="flex flex-row items-center w-full">
 								<View className="size-10 flex justify-center items-center">
 									<FontAwesome name={getSensorIcon(sensor.sensorType.id)} size={24} color="grey" />
@@ -111,14 +149,12 @@ export default function Notifications() {
 								<View className="ml-3">
 									<Text className="font-semibold">{message}</Text>
 
-									<View className="flex flex-row gap-0 items-center">
-										<Text className="text-gray-600">Valor {value} {sensor.sensorType.unit}</Text>
-										{thresholdSurpassed === 1 && (
-											<FontAwesome name="arrow-down" size={18} color="red" />
-										)}
-										{thresholdSurpassed === 2 && (
-											<FontAwesome name="arrow-up" size={18} color="red" />
-										)}
+									<View className="flex flex-row gap-1 items-center">
+										<Text className="text-gray-600">
+											Valor {value} {sensor.sensorType.unit}
+										</Text>
+										{thresholdSurpassed === 1 && <FontAwesome name="arrow-down" size={15} color="red" />}
+										{thresholdSurpassed === 2 && <FontAwesome name="arrow-up" size={18} color="red" />}
 									</View>
 
 									<Text className="text-gray-500">{formattedDate}</Text>
