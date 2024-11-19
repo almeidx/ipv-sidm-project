@@ -26,7 +26,18 @@ const categoryOptions = [
 export function SensorsFilterPopover() {
 	const [sensorTypesOptions, setSensorTypesOptions] = useState<GetSensorTypesResult["sensorTypes"]>([]);
 
-	const { categories, order, sensorTypes, setCategories, setOrder, setSensorTypes } = useSensorFilters();
+	const {
+		order,
+		sensorTypes,
+		favourites,
+		threshold,
+
+		setOrder,
+		setSensorTypes,
+		setFavorites,
+		setThreshold,
+	} = useSensorFilters();
+
 	const { width: screenWidth } = Dimensions.get("window");
 
 	useEffect(() => {
@@ -35,6 +46,7 @@ export function SensorsFilterPopover() {
 				CacheKey.SensorTypes,
 				async () => {
 					const { data } = await makeApiRequest<GetSensorTypesResult>("/sensors/types");
+					// biome-ignore lint/style/noNonNullAssertion:
 					return data!.sensorTypes;
 				},
 				30 * 60,
@@ -107,27 +119,33 @@ export function SensorsFilterPopover() {
 				<Text className="text-2xl font-bold">Categorias</Text>
 
 				<View>
-					{categoryOptions.map((category, idx) => (
-						<TouchableOpacity
-							key={category.value}
-							onPress={() => {
-								const isSelected = categories.includes(category.value);
+					<TouchableOpacity onPress={() => setFavorites(favourites === true ? null : true)}>
+						<View className="flex flex-row items-center py-4 gap-4 border-b border-gray-300">
+							<Checkbox value={favourites === true} />
+							<Text>Favoritos</Text>
+						</View>
+					</TouchableOpacity>
 
-								if (isSelected) {
-									setCategories((prev) => prev.filter((v) => v !== category.value));
-								} else {
-									setCategories((prev) => [...prev, category.value]);
-								}
-							}}
-						>
-							<View
-								className={`flex flex-row items-center py-4 gap-4 ${idx === categoryOptions.length - 1 ? "" : "border-b border-gray-300"}`}
-							>
-								<Checkbox value={categories.includes(category.value)} />
-								<Text>{category.label}</Text>
-							</View>
-						</TouchableOpacity>
-					))}
+					<TouchableOpacity onPress={() => setFavorites(favourites === false ? null : false)}>
+						<View className="flex flex-row items-center py-4 gap-4 border-b border-gray-300">
+							<Checkbox value={favourites === false} />
+							<Text>Não Favoritos</Text>
+						</View>
+					</TouchableOpacity>
+
+					<TouchableOpacity onPress={() => setThreshold(threshold === "above" ? null : "above")}>
+						<View className="flex flex-row items-center py-4 gap-4 border-b border-gray-300">
+							<Checkbox value={threshold === "above"} />
+							<Text>Acima do Limite</Text>
+						</View>
+					</TouchableOpacity>
+
+					<TouchableOpacity onPress={() => setThreshold(threshold === "below" ? null : "below")}>
+						<View className="flex flex-row items-center py-4 gap-4 border-b border-gray-300">
+							<Checkbox value={threshold === "below"} />
+							<Text>Abaixo do Limite</Text>
+						</View>
+					</TouchableOpacity>
 				</View>
 			</View>
 		</View>

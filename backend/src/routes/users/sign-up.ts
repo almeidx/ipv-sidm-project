@@ -10,7 +10,7 @@ export const signUp: FastifyPluginAsyncZod = async (app) => {
 		{
 			schema: {
 				body: z.object({
-					name: z.string().min(3).max(32),
+					name: z.string().min(3).max(128),
 					email: z.string().email(),
 					password: z.string().min(12).max(128),
 				}),

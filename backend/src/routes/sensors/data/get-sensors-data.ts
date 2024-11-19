@@ -17,11 +17,15 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 						.regex(/^\d+(,\d+)*$/)
 						.optional(),
 					order: z.nativeEnum(SensorOrder).optional(),
-					category: z.nativeEnum(SensorCategory).optional(),
 					sensors: z
 						.string()
 						.regex(/^\d+(,\d+)*$/)
 						.optional(),
+					excludeSensors: z
+						.string()
+						.regex(/^\d+(,\d+)*$/)
+						.optional(),
+					threshold: z.union([z.literal("above"), z.literal("below")]).optional(),
 				}),
 				response: {
 					200: z.object({
@@ -31,19 +35,21 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 			},
 		},
 		async (request) => {
-			const { startDate, endDate, query, sensorTypes, category, order, sensors } = request.query;
+			const { startDate, endDate, query, sensorTypes, threshold, order, sensors, excludeSensors } = request.query;
 
 			const sensorTypeIds = sensorTypes?.split(",").map(Number);
 			const sensorIds = sensors?.split(",").map(Number);
+			const excludeSensorIds = excludeSensors?.split(",").map(Number);
 
 			const data = await getSensorsDataImpl({
 				startDate,
 				endDate,
 				query,
 				sensorTypeIds,
-				category,
+				threshold,
 				order,
 				sensorIds,
+				excludeSensorIds,
 			});
 
 			return { sensors: data };

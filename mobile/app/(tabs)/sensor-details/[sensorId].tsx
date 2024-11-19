@@ -1,5 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGlobalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -7,13 +8,13 @@ import { LineChart } from "react-native-gifted-charts";
 import { toast } from "sonner-native";
 import { BasePage } from "../../../components/base-page";
 import type { GetSensorDataResult } from "../../../lib/api-types";
+import { CacheKey } from "../../../lib/cache";
 import { getSensorIcon } from "../../../lib/get-sensor-icon";
 import { makeApiRequest } from "../../../lib/make-api-request";
 
 export default function SensorDetails() {
 	const { sensorId } = useGlobalSearchParams<{ sensorId: string }>();
 	const [sensorData, setSensorData] = useState<GetSensorDataResult["sensor"] | null>(null);
-	//const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
 	useEffect(() => {
@@ -38,18 +39,45 @@ export default function SensorDetails() {
 			}
 		}
 
+		async function checkIfFavorite() {
+			const favourites = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
+			if (!favourites) {
+				setIsFavorite(false);
+				return;
+			}
+
+			const isFavorite = JSON.parse(favourites).includes(sensorId);
+			setIsFavorite(!!isFavorite);
+		}
+
 		fetchSensorsData();
+		checkIfFavorite();
 	}, [sensorId]);
 
-	const handleFavoriteToggle = () => {
+	async function handleFavoriteToggle() {
 		const newFavoriteStatus = !isFavorite;
 		setIsFavorite(newFavoriteStatus);
+
+		const favouritesList = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
+
 		if (newFavoriteStatus) {
 			toast.success("Sensor adicionado aos favoritos!");
+
+			await AsyncStorage.setItem(
+				CacheKey.FavouriteSensors,
+				JSON.stringify(favouritesList ? [...favouritesList, sensorId] : [sensorId]),
+			);
 		} else {
 			toast.success("Sensor removido dos favoritos!");
+
+			if (favouritesList) {
+				await AsyncStorage.setItem(
+					CacheKey.FavouriteSensors,
+					JSON.stringify(JSON.parse(favouritesList).filter((item: string) => item !== sensorId)),
+				);
+			}
 		}
-	};
+	}
 
 	if (!sensorData) {
 		return (
@@ -63,7 +91,7 @@ export default function SensorDetails() {
 		<BasePage
 			rightSide={
 				<TouchableOpacity onPress={handleFavoriteToggle}>
-					<Ionicons size={32} name={isFavorite ? "star" : "star-outline"} color={isFavorite ? "#FFEB3B" : "gray"} />
+					<Ionicons size={32} name={isFavorite ? "star" : "star-outline"} color={isFavorite ? "#a18b00" : "gray"} />
 				</TouchableOpacity>
 			}
 		>

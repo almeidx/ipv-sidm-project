@@ -1,5 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -10,6 +11,7 @@ import { Input } from "../../components/input";
 import { SensorsFilterPopover } from "../../components/sensors-filter-popover";
 import { useSensorFilters } from "../../contexts/sensor-filters-context";
 import type { GetSensorsDataResult } from "../../lib/api-types";
+import { CacheKey } from "../../lib/cache";
 import { getSensorIcon } from "../../lib/get-sensor-icon";
 import { makeApiRequest } from "../../lib/make-api-request";
 
@@ -21,22 +23,33 @@ export default function Home() {
 	const [sensorsData, setSensorsData] = useState<GetSensorsDataResult["sensors"]>([]);
 	const [search, setSearch] = useState("");
 
-	const { categories, order, sensorTypes } = useSensorFilters();
+	const { order, sensorTypes, favourites, threshold } = useSensorFilters();
 
 	useEffect(() => {
 		async function fetchSensorsData() {
 			const pastHour = new Date();
 			pastHour.setHours(pastHour.getHours() - 1);
 
-			makeApiRequest<GetSensorsDataResult>("/sensors/data", {
-				query: {
-					startDate: pastHour.toISOString(),
-					query: search,
-					categories: categories.join(","),
-					order,
-					sensorTypes: sensorTypes.join(","),
-				},
-			}).then(({ data }) => {
+			const query: Record<string, string> = {
+				startDate: pastHour.toISOString(),
+				query: search,
+				order,
+				sensorTypes: sensorTypes.join(","),
+			};
+
+			if (favourites !== null) {
+				const sensorIds = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
+				if (sensorIds) {
+					const key = favourites ? "sensors" : "excludeSensors";
+					query[key] = JSON.parse(sensorIds).join(",");
+				}
+			}
+
+			if (threshold) {
+				query.threshold = threshold;
+			}
+
+			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(({ data }) => {
 				if (data) {
 					setSensorsData(data.sensors);
 					// toast.loading("Dados atualizados");
@@ -49,7 +62,7 @@ export default function Home() {
 		const interval = setInterval(fetchSensorsData, FETCH_SENSORS_DATA_INTERVAL);
 
 		return () => clearInterval(interval);
-	}, [search, categories, order, sensorTypes]);
+	}, [search, order, sensorTypes, favourites, threshold]);
 
 	function handleSensorClick(sensorId: number) {
 		router.push(`/sensor-details/${sensorId}`);

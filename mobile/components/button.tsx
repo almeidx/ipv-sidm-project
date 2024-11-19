@@ -2,13 +2,15 @@ import type { ComponentProps } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export function Button({ title, variant = "filled", ...props }: ButtonProps) {
-	const buttonClass =
-		variant === "outline" ? "border-2 border-black bg-transparent text-black" : "bg-zinc-300 text-black";
-
 	return (
 		<View className="w-full">
 			<TouchableOpacity
-				className={`flex items-center justify-center rounded-3xl w-full h-14 ${buttonClass}`}
+				className={`flex items-center justify-center rounded-3xl w-full h-14 text-black ${
+					variant === "outline" ? "border-2 border-black" : ""
+				}`}
+				style={{
+					backgroundColor: variant === "outline" ? "transparent" : variant === "danger" ? "#f87171" : "#d4d4d8",
+				}}
 				{...props}
 			>
 				<Text className="text-xl font-bold">{title}</Text>
@@ -19,5 +21,5 @@ export function Button({ title, variant = "filled", ...props }: ButtonProps) {
 
 type ButtonProps = Omit<ComponentProps<typeof TouchableOpacity>, "className"> & {
 	title: string;
-	variant?: "filled" | "outline";
+	variant?: "filled" | "outline" | "danger";
 };

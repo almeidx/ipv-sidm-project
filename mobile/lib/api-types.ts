@@ -41,3 +41,10 @@ export interface GetSensorsDataResult {
 export interface GetSensorDataResult {
 	sensor: GetSensorsDataResult["sensors"][0];
 }
+
+export interface GetCurrentUserResult {
+	id: string;
+	email: string;
+	name: string;
+	createdAt: string; // ISO 8601 format
+}

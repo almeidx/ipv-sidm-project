@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export enum CacheKey {
 	SensorTypes = "sensorTypes",
+	FavouriteSensors = "favourites",
 }
 
 export async function findOrCreate<Data>(

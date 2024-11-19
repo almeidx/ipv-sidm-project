@@ -25,9 +25,10 @@ export async function getSensorsDataImpl({
 	endDate: rawEndDate,
 	query,
 	sensorTypeIds,
-	category,
+	threshold,
 	order = SensorOrder.CreatedAt,
 	sensorIds,
+	excludeSensorIds,
 }: GetSensorsDataOptions) {
 	const startDate = rawStartDate ? dayjs(rawStartDate) : dayjs().subtract(1, "week");
 	const endDate = rawEndDate ? dayjs(rawEndDate) : null;
@@ -35,24 +36,18 @@ export async function getSensorsDataImpl({
 	const sensorWhere: Prisma.SensorWhereInput = {};
 	if (sensorId) {
 		sensorWhere.id = sensorId;
+	} else if (sensorIds) {
+		sensorWhere.id = { in: sensorIds };
+	} else if (excludeSensorIds) {
+		sensorWhere.id = { notIn: excludeSensorIds };
 	}
 
 	if (query) {
-		sensorWhere.name = {
-			contains: query,
-		};
+		sensorWhere.name = { contains: query };
 	}
 
 	if (sensorTypeIds) {
-		sensorWhere.sensorTypeId = {
-			in: sensorTypeIds,
-		};
-	}
-
-	if (sensorIds) {
-		sensorWhere.id = {
-			in: sensorIds,
-		};
+		sensorWhere.sensorTypeId = { in: sensorTypeIds };
 	}
 
 	const orderBy: Prisma.SensorOrderByWithRelationInput[] = [];
@@ -99,10 +94,7 @@ export async function getSensorsDataImpl({
 	});
 
 	const sensorTypes = await prisma.sensorType.findMany({
-		select: {
-			id: true,
-			unit: true,
-		},
+		select: { id: true, unit: true },
 	});
 
 	const sensorTypeUnitsMap = Object.fromEntries(sensorTypes.map((type) => [type.id, type.unit]));
@@ -116,10 +108,12 @@ export async function getSensorsDataImpl({
 				lastTimestamp = currentTimestamp;
 				return true;
 			}
+
 			return false;
 		});
 
 		const currentValue = sensor.sensorData[sensor.sensorData.length - 1]?.value ?? 0;
+
 		const minValue = sensor.sensorData.reduce((min, data) => Math.min(min, data.value), Number.POSITIVE_INFINITY);
 
 		const thresholdWarning =
@@ -148,7 +142,8 @@ interface GetSensorsDataOptions {
 	endDate?: string;
 	query?: string;
 	sensorTypeIds?: number[];
-	category?: SensorCategory;
+	threshold?: "above" | "below";
 	order?: SensorOrder;
 	sensorIds?: number[];
+	excludeSensorIds?: number[];
 }

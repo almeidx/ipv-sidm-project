@@ -1,3 +1,4 @@
+import * as SecureStore from "expo-secure-store";
 import { toast } from "sonner-native";
 import { API_URL } from "./constants";
 
@@ -15,9 +16,24 @@ export async function makeApiRequest<Result>(
 			? new URLSearchParams(Object.fromEntries(Object.entries(query).filter(([, value]) => value))).toString()
 			: "";
 
+		const authToken = await SecureStore.getItemAsync("authToken");
+		if (authToken) {
+			init.headers ??= {};
+			(init.headers as { Authorization: string }).Authorization = `Bearer ${authToken}`;
+		}
+
 		const response = await fetch(`${API_URL}${endpoint}${query ? `?${queryString}` : ""}`, init);
 
 		if (!response.ok) {
+			if (response.status === 401 && response.headers.get("content-type")?.includes("application/json")) {
+				const data = await response.json();
+				if (data.message === "Authorization token expired") {
+					toast.error("Sessão expirada, por favor faça login novamente");
+					await SecureStore.deleteItemAsync("authToken");
+					return null;
+				}
+			}
+
 			console.error(`Failed to fetch ${endpoint} (code: ${response.status}):`, await response.text());
 			toast.error(failMessage);
 			return { data: null, response };

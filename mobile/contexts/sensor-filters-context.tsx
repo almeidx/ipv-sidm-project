@@ -14,17 +14,20 @@ export function useSensorFilters() {
 export function SensorFiltersProvider({ children }: PropsWithChildren) {
 	const [sensorTypes, setSensorTypes] = useState<number[]>([]);
 	const [order, setOrder] = useState<string>("created-at");
-	const [categories, setCategories] = useState<string[]>([]);
+	const [favourites, setFavorites] = useState<boolean | null>(null);
+	const [threshold, setThreshold] = useState<"above" | "below" | null>(null);
 
 	return (
 		<SensorFiltersContext.Provider
 			value={{
 				sensorTypes,
 				order,
-				categories,
+				favourites,
+				threshold,
 				setSensorTypes,
 				setOrder,
-				setCategories,
+				setFavorites,
+				setThreshold,
 			}}
 		>
 			{children}
@@ -35,9 +38,11 @@ export function SensorFiltersProvider({ children }: PropsWithChildren) {
 export interface SensorFiltersData {
 	sensorTypes: number[];
 	order: string;
-	categories: string[];
+	favourites: boolean | null;
+	threshold: "above" | "below" | null;
 
 	setSensorTypes: Dispatch<SetStateAction<number[]>>;
 	setOrder: Dispatch<SetStateAction<string>>;
-	setCategories: Dispatch<SetStateAction<string[]>>;
+	setFavorites: Dispatch<SetStateAction<boolean | null>>;
+	setThreshold: Dispatch<SetStateAction<"above" | "below" | null>>;
 }

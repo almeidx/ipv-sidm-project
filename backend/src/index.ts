@@ -21,9 +21,19 @@ import { getSensorData } from "#routes/sensors/data/get-sensor-data.ts";
 import { getSensorsData } from "#routes/sensors/data/get-sensors-data.ts";
 import { getSensors } from "#routes/sensors/get-sensors.ts";
 import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
+import { editCurrentUser } from "#routes/users/edit-current-user.ts";
+import { getCurrentUser } from "#routes/users/get-current-user.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
+
+declare module "@fastify/jwt" {
+	export interface FastifyJWT {
+		user: {
+			sub: string;
+		};
+	}
+}
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -31,8 +41,33 @@ app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
 app.setErrorHandler((error, request, reply) => {
-	console.error(error);
-	reply.send({ error: error.message });
+	console.error("Error caught by error handler:", error, error.statusCode);
+
+	if (error.validation) {
+		reply.statusCode = 400;
+		reply.send(error.validation);
+		return;
+	}
+
+	if (error.statusCode) {
+		reply.statusCode = error.statusCode;
+
+		if (error.code === "FST_JWT_NO_AUTHORIZATION_IN_HEADER") {
+			reply.send({ message: "Unauthorized" });
+			return;
+		}
+
+		if (error.code === "FST_JWT_AUTHORIZATION_TOKEN_INVALID") {
+			reply.header("X-Auth-Error", "malformed").send({ message: "Unauthorized" });
+			return;
+		}
+
+		reply.send({ message: error.message });
+		return;
+	}
+
+	reply.statusCode = 500;
+	reply.send({ message: error.message });
 });
 
 await app.register(fastifySensible);
@@ -99,6 +134,8 @@ await app.register(async (instance) => {
 	// users
 	await instance.register(signUp);
 	await instance.register(login);
+	await instance.register(getCurrentUser);
+	await instance.register(editCurrentUser);
 
 	await instance.register(getStatus);
 	await instance.register(webSocketRoute);
