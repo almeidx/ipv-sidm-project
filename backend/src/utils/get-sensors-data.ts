@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
@@ -25,97 +25,155 @@ export async function getSensorsDataImpl({
 	endDate: rawEndDate,
 	query,
 	sensorTypeIds,
-	threshold,
 	order = SensorOrder.CreatedAt,
 	sensorIds,
 	excludeSensorIds,
 }: GetSensorsDataOptions) {
-	const startDate = rawStartDate ? dayjs(rawStartDate) : dayjs().subtract(1, "week");
-	const endDate = rawEndDate ? dayjs(rawEndDate) : null;
+	const startDate = rawStartDate
+		? dayjs(rawStartDate)
+		: dayjs().subtract(1, "week");
+	const endDate = rawEndDate ? dayjs(rawEndDate) : undefined;
 
-	const sensorWhere: Prisma.SensorWhereInput = {};
+	const conditions = [];
+
 	if (sensorId) {
-		sensorWhere.id = sensorId;
-	} else if (sensorIds) {
-		sensorWhere.id = { in: sensorIds };
-	} else if (excludeSensorIds) {
-		sensorWhere.id = { notIn: excludeSensorIds };
+		conditions.push(`s.id = ${sensorId}`);
+	} else if (sensorIds?.length) {
+		conditions.push(`s.id IN (${Prisma.join(sensorIds)})`);
+	} else if (excludeSensorIds?.length) {
+		conditions.push(`s.id NOT IN (${Prisma.join(excludeSensorIds)})`);
 	}
 
 	if (query) {
-		sensorWhere.name = { contains: query };
+		conditions.push(`s.name LIKE '%${query}%'`);
 	}
 
-	if (sensorTypeIds) {
-		sensorWhere.sensorTypeId = { in: sensorTypeIds };
+	if (sensorTypeIds?.length) {
+		conditions.push(`s.sensor_type_id IN (${Prisma.join(sensorTypeIds)})`);
+		console.log(conditions);
 	}
 
-	const orderBy: Prisma.SensorOrderByWithRelationInput[] = [];
+	conditions.push(`sd.created_at >= ${startDate.valueOf()}`);
+	if (endDate) {
+		conditions.push(`sd.created_at <= ${endDate.valueOf()}`);
+	}
 
+	const whereClause =
+		conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+	let orderByClause = "";
 	switch (order) {
 		case SensorOrder.NameAsc:
-			orderBy.push({ name: "asc" });
+			orderByClause = "ORDER BY rd.name ASC";
 			break;
 		case SensorOrder.NameDesc:
-			orderBy.push({ name: "desc" });
+			orderByClause = "ORDER BY rd.name DESC";
 			break;
 		case SensorOrder.TypeAsc:
-			orderBy.push({ sensorTypeId: "asc" });
+			orderByClause = "ORDER BY rd.sensor_type_id ASC";
 			break;
 		case SensorOrder.TypeDesc:
-			orderBy.push({ sensorTypeId: "desc" });
+			orderByClause = "ORDER BY rd.sensor_type_id DESC";
 			break;
+		default:
+			orderByClause = "ORDER BY rd.sensor_created_at ASC";
 	}
 
-	orderBy.push({ createdAt: "asc" });
+	const sql = Prisma.sql`
+		WITH ranked_data AS (
+			SELECT
+				s.id,
+				s.name,
+				s.sensor_type_id,
+				s.max_threshold,
+				s.min_threshold,
+				s.created_at AS sensor_created_at,
+				sd.value,
+				sd.created_at,
+				ROW_NUMBER() OVER (PARTITION BY s.id ORDER BY sd.created_at) as row_num,
+				COUNT(*) OVER (PARTITION BY s.id) as total_points
+			FROM sensors s
+			LEFT JOIN sensor_data sd ON s.id = sd.sensor_id
+			${Prisma.raw(whereClause)}
+		)
+		SELECT
+			rd.*,
+			st.unit
+		FROM ranked_data rd
+		LEFT JOIN sensor_types st ON rd.sensor_type_id = st.id
+		WHERE (
+			row_num = 1
+			OR row_num = total_points
+			OR (
+				row_num > 1
+				AND row_num < total_points
+				AND (row_num * 5 / CAST(total_points AS FLOAT)) =
+					CAST((row_num * 5 / CAST(total_points AS FLOAT)) AS INTEGER)
+			)
+		)
+		${Prisma.raw(orderByClause)}
+	`;
 
-	const sensors = await prisma.sensor.findMany({
-		where: sensorWhere,
-		select: {
-			id: true,
-			name: true,
-			sensorTypeId: true,
-			sensorData: {
-				select: {
-					value: true,
-					createdAt: true,
-				},
-				where: {
-					createdAt: {
-						gte: startDate.toDate(),
-						...(endDate ? { lte: endDate.toDate() } : {}),
-					},
-				},
-				orderBy,
-			},
-			maxThreshold: true,
-			minThreshold: true,
-		},
-	});
+	console.log(sql.strings[0]);
 
-	const sensorTypes = await prisma.sensorType.findMany({
-		select: { id: true, unit: true },
-	});
+	const results =
+		await prisma.$queryRaw<
+			{
+				id: number;
+				name: string;
+				sensor_type_id: number;
+				max_threshold: number;
+				min_threshold: number;
+				value: number | null;
+				created_at: Date;
+				unit: string;
+			}[]
+		>(sql);
 
-	const sensorTypeUnitsMap = Object.fromEntries(sensorTypes.map((type) => [type.id, type.unit]));
+	// Process and format results
+	const sensorMap = new Map<
+		number,
+		{
+			id: number;
+			name: string;
+			sensorTypeId: number;
+			maxThreshold: number;
+			minThreshold: number;
+			unit: string;
+			sensorData: { value: number; createdAt: Date }[];
+			currentValue: string | null;
+			minValue: number;
+		}
+	>();
 
-	return sensors.map((sensor) => {
-		let lastTimestamp: dayjs.Dayjs | null = null;
+	for (const row of results) {
+		if (!sensorMap.has(row.id)) {
+			sensorMap.set(row.id, {
+				id: row.id,
+				name: row.name,
+				sensorTypeId: row.sensor_type_id,
+				maxThreshold: row.max_threshold,
+				minThreshold: row.min_threshold,
+				unit: row.unit,
+				sensorData: [],
+				currentValue: null,
+				minValue: Number.POSITIVE_INFINITY,
+			});
+		}
 
-		const filteredData = sensor.sensorData.filter((data) => {
-			const currentTimestamp = dayjs(data.createdAt);
-			if (!lastTimestamp || currentTimestamp.diff(lastTimestamp, "second") >= 180) {
-				lastTimestamp = currentTimestamp;
-				return true;
-			}
+		// biome-ignore lint/style/noNonNullAssertion:
+		const sensor = sensorMap.get(row.id)!;
+		if (row.value !== null) {
+			sensor.sensorData.push({
+				value: row.value,
+				createdAt: row.created_at,
+			});
+			sensor.minValue = Math.min(sensor.minValue, row.value);
+		}
+	}
 
-			return false;
-		});
-
-		const currentValue = sensor.sensorData[sensor.sensorData.length - 1]?.value ?? 0;
-
-		const minValue = sensor.sensorData.reduce((min, data) => Math.min(min, data.value), Number.POSITIVE_INFINITY);
-
+	const res_ = Array.from(sensorMap.values()).map((sensor) => {
+		const currentValue = sensor.sensorData.at(-1)?.value ?? 0;
 		const thresholdWarning =
 			currentValue > sensor.maxThreshold
 				? ("above" as const)
@@ -125,20 +183,22 @@ export async function getSensorsDataImpl({
 
 		return {
 			...sensor,
-			currentValue: `${currentValue} ${sensorTypeUnitsMap[sensor.sensorTypeId] ?? ""}`,
-			minValue,
-			sensorData: filteredData.map((data) => ({
+			currentValue: `${currentValue} ${sensor.unit ?? ""}`,
+			sensorData: sensor.sensorData.map((data) => ({
 				value: data.value,
-				// label: dayjs(data.createdAt).format("HH:mm:ss"),
 			})),
 			thresholdWarning,
 		};
 	});
+
+	console.dir(res_, { depth: null });
+
+	return res_;
 }
 
 interface GetSensorsDataOptions {
 	sensorId?: number;
-	startDate?: string;
+	startDate?: string | Date;
 	endDate?: string;
 	query?: string;
 	sensorTypeIds?: number[];

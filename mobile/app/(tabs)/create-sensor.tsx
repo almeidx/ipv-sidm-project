@@ -7,17 +7,22 @@ import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
 import type { GetSensorTypesResult } from "../../lib/api-types";
 import { makeApiRequest } from "../../lib/make-api-request";
+import DropdownSelect from "react-native-input-select";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");
 	const [selectedValue, setSelectedValue] = useState("1");
-	const [sensorTypes, setSensorTypes] = useState<GetSensorTypesResult["sensorTypes"]>([]);
+	const [sensorTypes, setSensorTypes] = useState<
+		GetSensorTypesResult["sensorTypes"]
+	>([]);
 	const [isLoading, setLoading] = useState(true);
 	const [maxThreshold, setMaxThreshold] = useState("");
 	const [minThreshold, setMinThreshold] = useState("");
 
 	useEffect(() => {
-		makeApiRequest<GetSensorTypesResult>("/sensors/types", { failMessage: "Failed to fetch sensor types" })
+		makeApiRequest<GetSensorTypesResult>("/sensors/types", {
+			failMessage: "Failed to fetch sensor types",
+		})
 			.then(({ data }) => {
 				if (data) {
 					setSensorTypes(data.sensorTypes);
@@ -38,19 +43,22 @@ export default function CreateSensor() {
 		}
 
 		try {
-			const { data, response } = await makeApiRequest<{ id: string }>("/sensors", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
+			const { data, response } = await makeApiRequest<{ id: string }>(
+				"/sensors",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						name,
+						sensorType: Number(selectedValue),
+						maxThreshold: maxThresholdNumber,
+						minThreshold: minThresholdNumber,
+					}),
+					failMessage: "An error occurred. Please try again later",
 				},
-				body: JSON.stringify({
-					name,
-					sensorType: Number(selectedValue),
-					maxThreshold: maxThresholdNumber,
-					minThreshold: minThresholdNumber,
-				}),
-				failMessage: "An error occurred. Please try again later",
-			});
+			);
 
 			switch (response.status) {
 				case 201: {
@@ -95,19 +103,11 @@ export default function CreateSensor() {
 	return (
 		<BasePage>
 			<View className="flex-1 items-center pt-9 flex flex-col gap-5 h-full">
-				<Input
-					placeholder="Nome"
-					value={name}
-					onChangeText={setName}
-					style={{
-						fontSize: 16,
-					}}
-					placeholderTextColor="black"
-				/>
-				<View className="w-full h-14 border-2 border-gray-300 rounded-lg bg-white/10 text-black ">
-					<RNPickerSelect
-						onValueChange={(itemValue) => setSelectedValue(itemValue)}
-						items={[
+				<Input placeholder="Nome" value={name} onChangeText={setName} />
+				<View className="w-full h-14 rounded-lg bg-white/10 justify-center mt-4 -mb-3">
+					<DropdownSelect
+						placeholder="Selecione um tipo de sensor"
+						options={[
 							{
 								label: "Selecione um tipo de sensor",
 								value: null,
@@ -118,29 +118,37 @@ export default function CreateSensor() {
 								value: type.id.toString(),
 							})),
 						]}
-						value={selectedValue}
-						style={{
-							inputIOS: {
-								color: "black",
-								backgroundColor: "transparent",
-								textAlign: "center",
-								fontSize: 16,
-							},
-							inputAndroid: {
-								color: "black",
-								backgroundColor: "transparent",
-								textAlign: "center",
-								fontSize: 16,
-							},
-							placeholder: {
-								color: "#999999",
-								textAlign: "left",
-								paddingLeft: 20,
-							},
+						selectedValue={selectedValue}
+						onValueChange={(value) => setSelectedValue(value as string)}
+						primaryColor="black"
+						placeholderStyle={{
+							color: "#999999",
+							textAlign: "left",
+							paddingLeft: 22,
+							paddingRight: 20,
 						}}
-						doneText=""
-						Icon={() => null}
-						placeholder={{}}
+						dropdownContainerStyle={{
+							width: "100%", // Largura completa
+							height: 50, // Altura equivalente a `h-14` (14 * 4 px)
+							borderWidth: 2, // Equivale a `border-2`
+							borderColor: "#D1D5DB", // Cor equivalente a `border-gray-300`
+							borderRadius: 8, // Equivale a `rounded-lg`
+							backgroundColor: "rgba(255, 255, 255, 0.1)", // Fundo transparente
+							justifyContent: "center", // Centraliza verticalmente o conteúdo
+							margin: 0,
+							paddingRight: 3, // Remove margens adicionais
+							paddingLeft: 15, // Remove margens adicionais
+						}}
+						textStyle={{
+							color: "black",
+							backgroundColor: "transparent",
+							textAlign: "center",
+							fontSize: 16,
+							paddingLeft: 5,
+						}}
+						dropdownIconStyle={{
+							marginTop: -18,
+						}}
 					/>
 				</View>
 
@@ -149,9 +157,6 @@ export default function CreateSensor() {
 					value={minThreshold}
 					onChangeText={setMinThreshold}
 					keyboardType="numeric"
-					style={{
-						fontSize: 16,
-					}}
 				/>
 
 				<Input
@@ -159,9 +164,6 @@ export default function CreateSensor() {
 					value={maxThreshold}
 					onChangeText={setMaxThreshold}
 					keyboardType="numeric"
-					style={{
-						fontSize: 16,
-					}}
 				/>
 
 				<TouchableOpacity

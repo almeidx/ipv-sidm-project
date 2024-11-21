@@ -1,11 +1,16 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import dayjs from "dayjs";
 import "dayjs/locale/pt";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
+import {
+	ActivityIndicator,
+	Alert,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import type { GetNotificationsResult } from "../../lib/api-types";
@@ -18,7 +23,10 @@ dayjs.extend(relativeTime);
 
 export default function Notifications() {
 	const [notifications, setNotifications] = useState<
-		(GetNotificationsResult["notifications"][number] & { message: string; formattedDate: string })[]
+		(GetNotificationsResult["notifications"][number] & {
+			message: string;
+			formattedDate: string;
+		})[]
 	>([]);
 
 	const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -26,40 +34,45 @@ export default function Notifications() {
 	useEffect(() => {
 		async function getNotifications() {
 			try {
-				const { data } = await makeApiRequest<GetNotificationsResult>("/notifications", {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
+				const { data } = await makeApiRequest<GetNotificationsResult>(
+					"/notifications",
+					{
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						failMessage: "Failed to fetch notifications",
 					},
-					failMessage: "Failed to fetch notifications",
-				});
+				);
 
 				if (data) {
-					const formattedNotifications = data.notifications.map((notification) => {
-						let message = "";
+					const formattedNotifications = data.notifications.map(
+						(notification) => {
+							let message = "";
 
-						switch (notification.thresholdSurpassed) {
-							case 0:
-								message = `${notification.sensor.name} voltou ao normal.`;
-								break;
-							case 1:
-								message = `${notification.sensor.name} passou o threshold de baixo.`;
-								break;
-							case 2:
-								message = `${notification.sensor.name} passou o threshold de cima.`;
-								break;
-							default:
-								message = "Status desconhecido";
-						}
+							switch (notification.thresholdSurpassed) {
+								case 0:
+									message = `${notification.sensor.name} voltou ao normal.`;
+									break;
+								case 1:
+									message = `${notification.sensor.name} passou o threshold de baixo.`;
+									break;
+								case 2:
+									message = `${notification.sensor.name} passou o threshold de cima.`;
+									break;
+								default:
+									message = "Status desconhecido";
+							}
 
-						const formattedDate = dayjs(notification.createdAt).fromNow();
+							const formattedDate = dayjs(notification.createdAt).fromNow();
 
-						return {
-							...notification,
-							message,
-							formattedDate,
-						};
-					});
+							return {
+								...notification,
+								message,
+								formattedDate,
+							};
+						},
+					);
 
 					setNotifications(formattedNotifications);
 				}
@@ -75,16 +88,21 @@ export default function Notifications() {
 
 	async function markAsRead(id: number) {
 		try {
-			const response = await fetch(`${API_URL}/notifications/${id}/mark-as-read`, {
-				method: "POST",
-			});
+			const response = await fetch(
+				`${API_URL}/notifications/${id}/mark-as-read`,
+				{
+					method: "POST",
+				},
+			);
 
 			if (!response.ok) {
 				console.log(response);
 				throw new Error("Failed to mark notification as read");
 			}
 
-			setNotifications((prevNotifications) => prevNotifications.filter((notification) => notification.id !== id));
+			setNotifications((prevNotifications) =>
+				prevNotifications.filter((notification) => notification.id !== id),
+			);
 
 			toast.info("Notificação marcada como lida");
 		} catch (error) {
@@ -113,17 +131,21 @@ export default function Notifications() {
 	}
 
 	function confirmClearNotifications() {
-		Alert.alert("Confirmar", "Tem a certeza de que deseja remover todas as notificações?", [
-			{
-				text: "Cancelar",
-				style: "cancel",
-			},
-			{
-				text: "Remover",
-				style: "destructive",
-				onPress: clearAllNotifications,
-			},
-		]);
+		Alert.alert(
+			"Confirmar",
+			"Tem a certeza de que deseja remover todas as notificações?",
+			[
+				{
+					text: "Cancelar",
+					style: "cancel",
+				},
+				{
+					text: "Remover",
+					style: "destructive",
+					onPress: clearAllNotifications,
+				},
+			],
+		);
 	}
 
 	return (
@@ -139,33 +161,53 @@ export default function Notifications() {
 				{isLoading ? (
 					<ActivityIndicator size="large" color="blue" />
 				) : (
-					notifications.map(({ id, sensor, message, value, formattedDate, thresholdSurpassed }) => (
-						<View key={id} className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300">
-							<View className="flex flex-row items-center w-full">
-								<View className="size-10 flex justify-center items-center">
-									<FontAwesome name={getSensorIcon(sensor.sensorType.id)} size={24} color="grey" />
-								</View>
-
-								<View className="ml-3">
-									<Text className="font-semibold">{message}</Text>
-
-									<View className="flex flex-row gap-1 items-center">
-										<Text className="text-gray-600">
-											Valor {value} {sensor.sensorType.unit}
-										</Text>
-										{thresholdSurpassed === 1 && <FontAwesome name="arrow-down" size={15} color="red" />}
-										{thresholdSurpassed === 2 && <FontAwesome name="arrow-up" size={18} color="red" />}
+					notifications.map(
+						({
+							id,
+							sensor,
+							message,
+							value,
+							formattedDate,
+							thresholdSurpassed,
+						}) => (
+							<View
+								key={id}
+								className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300"
+							>
+								<View className="flex flex-row items-center w-full">
+									<View className="size-10 flex justify-center items-center">
+										<Ionicons
+											name={getSensorIcon(sensor.sensorType.id)}
+											size={24}
+											color="grey"
+										/>
 									</View>
 
-									<Text className="text-gray-500">{formattedDate}</Text>
-								</View>
-							</View>
+									<View className="ml-3">
+										<Text className="font-semibold">{message}</Text>
 
-							<TouchableOpacity onPress={() => markAsRead(id)}>
-								<FontAwesome name="times" size={18} color="grey" />
-							</TouchableOpacity>
-						</View>
-					))
+										<View className="flex flex-row gap-1 items-center">
+											<Text className="text-gray-600">
+												Valor {value} {sensor.sensorType.unit}
+											</Text>
+											{thresholdSurpassed === 1 && (
+												<Ionicons name="arrow-down" size={15} color="red" />
+											)}
+											{thresholdSurpassed === 2 && (
+												<Ionicons name="arrow-up" size={18} color="red" />
+											)}
+										</View>
+
+										<Text className="text-gray-500">{formattedDate}</Text>
+									</View>
+								</View>
+
+								<TouchableOpacity onPress={() => markAsRead(id)}>
+									<Ionicons name="checkmark" size={22} color="grey" />
+								</TouchableOpacity>
+							</View>
+						),
+					)
 				)}
 			</View>
 		</BasePage>

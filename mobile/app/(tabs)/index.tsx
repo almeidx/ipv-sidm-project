@@ -1,4 +1,3 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
@@ -20,7 +19,9 @@ const FETCH_SENSORS_DATA_INTERVAL = 3 * 1_000;
 export default function Home() {
 	const router = useRouter();
 
-	const [sensorsData, setSensorsData] = useState<GetSensorsDataResult["sensors"]>([]);
+	const [sensorsData, setSensorsData] = useState<
+		GetSensorsDataResult["sensors"]
+	>([]);
 	const [search, setSearch] = useState("");
 
 	const { order, sensorTypes, favourites, threshold } = useSensorFilters();
@@ -49,12 +50,14 @@ export default function Home() {
 				query.threshold = threshold;
 			}
 
-			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(({ data }) => {
-				if (data) {
-					setSensorsData(data.sensors);
-					// toast.loading("Dados atualizados");
-				}
-			});
+			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(
+				({ data }) => {
+					if (data) {
+						setSensorsData(data.sensors);
+						// toast.loading("Dados atualizados");
+					}
+				},
+			);
 		}
 
 		fetchSensorsData();
@@ -78,10 +81,14 @@ export default function Home() {
 		>
 			<View className="flex flex-row items-center gap-4 w-full">
 				<View className="w-[88%]">
-					<Input placeholder="Pesquisar sensor" value={search} onChangeText={(text) => setSearch(text)} />
+					<Input
+						placeholder="Pesquisar sensor"
+						value={search}
+						onChangeText={(text) => setSearch(text)}
+					/>
 				</View>
 
-				<Popover from={<FontAwesome size={24} name="bars" />}>
+				<Popover from={<Ionicons size={40} name="reorder-four" />}>
 					<SensorsFilterPopover />
 				</Popover>
 			</View>
@@ -89,11 +96,18 @@ export default function Home() {
 			<View className="flex flex-col w-full mt-4 gap-6">
 				{sensorsData.length ? (
 					sensorsData.map((sensor) => (
-						<TouchableOpacity key={sensor.id} onPress={() => handleSensorClick(sensor.id)}>
+						<TouchableOpacity
+							key={sensor.id}
+							onPress={() => handleSensorClick(sensor.id)}
+						>
 							<View className="flex flex-col gap-4 rounded-lg">
 								<View className="flex flex-row items-center">
 									<View className="flex justify-center items-center mr-3">
-										<FontAwesome size={25} name={getSensorIcon(sensor.sensorTypeId)} color="grey" />
+										<Ionicons
+											size={25}
+											name={getSensorIcon(sensor.sensorTypeId)}
+											color="grey"
+										/>
 									</View>
 
 									<View className="flex flex-col gap-1">
