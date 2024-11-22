@@ -120,7 +120,7 @@ export default function SensorDetails() {
 							<Text className="text-gray-700 text-md font-semibold">
 								{sensorData.name}
 							</Text>
-							<Text className="text-blue-600 text-4xl font-extrabold">
+							<Text className="text-gray text-4xl font-extrabold">
 								{sensorData.currentValue}
 							</Text>
 						</View>
@@ -155,6 +155,7 @@ export default function SensorDetails() {
 						// hideRules
 						// hideYAxisText
 						thickness={2}
+						curved
 						yAxisOffset={sensorData.minValue}
 						color={sensorData.thresholdWarning === null ? "green" : "red"}
 					/>
@@ -164,7 +165,7 @@ export default function SensorDetails() {
 					{timeframes.map((timeframe) => (
 						<TouchableOpacity
 							key={timeframe}
-							className={`px-4 py-1.5 rounded-md ${
+							className={`px-3 py-1.5 rounded-md ${
 								selectedTimeframe === timeframe ? "bg-slate-600" : "bg-gray-400"
 							}`}
 							onPress={() => setSelectedTimeframe(timeframe)}
@@ -180,6 +181,96 @@ export default function SensorDetails() {
 							</Text>
 						</TouchableOpacity>
 					))}
+				</View>
+
+				<View>
+					<Text className="text-gray-700 text-md font-semibold mt-4">
+						Intervalos de valores no último dia
+					</Text>
+
+					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
+						<View className="flex flex-row justify-between">
+							{/* Valor Mínimo */}
+							<Text className="text-blue-900 font-bold">
+								Mínimo: {sensorData.minPastDay}
+							</Text>
+							{/* Valor Máximo */}
+							<Text className="text-green-900 font-bold">
+								Máximo: {sensorData.maxPastDay}
+							</Text>
+						</View>
+
+						{/* Barra de intervalo */}
+						<View className="relative mt-4 h-4 bg-gray-200 rounded-full">
+							{/* Marcador do Mínimo */}
+							<View className="absolute w-4 h-4 bg-blue-500 rounded-full" />
+							{/* Marcador da Média */}
+							<View
+								style={{
+									left: `${((sensorData.avgPastDay - sensorData.minPastDay) / (sensorData.maxPastDay - sensorData.minPastDay)) * 100}%`,
+								}}
+								className="absolute w-4 h-4 bg-gray-500 rounded-full"
+							/>
+							{/* Marcador do Máximo */}
+							<View
+								style={{ left: "96%" }}
+								className="absolute w-4 h-4 bg-green-500 rounded-full"
+							/>
+						</View>
+
+						{/* Mostrar valores na barra */}
+						<View className="flex flex-row justify-between text-xs mt-2">
+							<Text className="text-blue-900">{sensorData.minPastDay}</Text>
+							<Text className="text-gray-500">
+								Média: {sensorData.avgPastDay?.toFixed(2)}
+							</Text>
+							<Text className="text-green-900">{sensorData.maxPastDay}</Text>
+						</View>
+					</View>
+
+					<Text className="text-gray-700 text-md font-semibold mt-6">
+						Intervalos de valores na última semana
+					</Text>
+
+					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
+						<View className="flex flex-row justify-between">
+							{/* Valor Mínimo */}
+							<Text className="text-blue-900 font-bold">
+								Mínimo: {sensorData.minPastWeek}
+							</Text>
+							{/* Valor Máximo */}
+							<Text className="text-green-900 font-bold">
+								Máximo: {sensorData.maxPastWeek}
+							</Text>
+						</View>
+
+						{/* Barra de intervalo */}
+						<View className="relative mt-4 h-4 bg-gray-200 rounded-full">
+							{/* Marcador do Mínimo */}
+							<View className="absolute w-4 h-4 bg-blue-500 rounded-full" />
+							{/* Marcador da Média */}
+							<View
+								style={{
+									left: `${((sensorData.avgPastWeek - sensorData.minPastWeek) / (sensorData.maxPastWeek - sensorData.minPastWeek)) * 100}%`,
+								}}
+								className="absolute w-4 h-4 bg-gray-500 rounded-full"
+							/>
+							{/* Marcador do Máximo */}
+							<View
+								style={{ left: "100%" }}
+								className="absolute w-4 h-4 bg-green-500 rounded-full"
+							/>
+						</View>
+
+						{/* Mostrar valores na barra */}
+						<View className="flex flex-row justify-between text-xs mt-2">
+							<Text className="text-blue-900">{sensorData.minPastWeek}</Text>
+							<Text className="text-gray-500">
+								Média: {sensorData.avgPastWeek?.toFixed(2)}
+							</Text>
+							<Text className="text-green-900">{sensorData.maxPastWeek}</Text>
+						</View>
+					</View>
 				</View>
 			</ScrollView>
 		</BasePage>

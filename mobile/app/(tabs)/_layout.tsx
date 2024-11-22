@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 import * as SecureStorage from "expo-secure-store";
 import type React from "react";
+import { CacheKey } from "../../lib/cache";
 
 function TabBarIcon(props: {
 	name: React.ComponentProps<typeof Ionicons>["name"];
@@ -11,7 +12,7 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-	const isLoggedIn = SecureStorage.getItem("authToken");
+	const isLoggedIn = SecureStorage.getItem(CacheKey.AuthToken);
 
 	return (
 		<Tabs
@@ -41,21 +42,27 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="notifications"
 				options={{
-					tabBarIcon: ({ color }) => <TabBarIcon name="notifications" color={color} />,
+					tabBarIcon: ({ color }) => (
+						<TabBarIcon name="notifications" color={color} />
+					),
 				}}
 			/>
 			{isLoggedIn ? (
 				<Tabs.Screen
 					name="profile"
 					options={{
-						tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
+						tabBarIcon: ({ color }) => (
+							<TabBarIcon name="person" color={color} />
+						),
 					}}
 				/>
 			) : (
 				<Tabs.Screen
 					name="login"
 					options={{
-						tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
+						tabBarIcon: ({ color }) => (
+							<TabBarIcon name="person" color={color} />
+						),
 					}}
 				/>
 			)}

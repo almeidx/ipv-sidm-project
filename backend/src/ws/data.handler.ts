@@ -1,8 +1,16 @@
 import { prisma } from "#lib/prisma.ts";
 import { ThresholdStatus } from "#utils/threshold-surpassed-enum.ts";
-import { type WebSocketMessage, killConnection, validateSensorConnection } from "./connections.ts";
+import {
+	type WebSocketMessage,
+	killConnection,
+	validateSensorConnection,
+} from "./connections.ts";
 
-export async function dataHandler(socket: WebSocket, sensorId: number | null, data: WebSocketMessage) {
+export async function dataHandler(
+	socket: WebSocket,
+	sensorId: number | null,
+	data: WebSocketMessage,
+) {
 	if (!validateSensorConnection(socket, sensorId)) {
 		return;
 	}
@@ -41,7 +49,6 @@ async function handleSensorReading(sensorId: number, value: number) {
 			notifications: {
 				where: {
 					createdAt: { gt: pastHour },
-					deletedAt: null,
 				},
 				select: {
 					id: true,
@@ -54,25 +61,35 @@ async function handleSensorReading(sensorId: number, value: number) {
 
 	const currentStatus = determineThresholdStatus(value, sensor);
 
-	// Check if the most recent notification (if any) matches our current status
 	const latestNotification = sensor.notifications[0];
-	const statusChanged = !latestNotification || latestNotification.thresholdSurpassed !== currentStatus;
+	const statusChanged =
+		!latestNotification ||
+		latestNotification.thresholdSurpassed !== currentStatus;
 
-	// Only proceed if the status has actually changed
 	if (statusChanged) {
 		await handleNotifications(sensorId, currentStatus, value);
 	}
 }
 
-function determineThresholdStatus(value: number, sensor: { minThreshold: number; maxThreshold: number }) {
+function determineThresholdStatus(
+	value: number,
+	sensor: { minThreshold: number; maxThreshold: number },
+) {
 	if (value < sensor.minThreshold) return ThresholdStatus.Below;
 	if (value > sensor.maxThreshold) return ThresholdStatus.Above;
 	return ThresholdStatus.Normal;
 }
 
-async function handleNotifications(sensorId: number, status: ThresholdStatus, value: number) {
+async function handleNotifications(
+	sensorId: number,
+	status: ThresholdStatus,
+	value: number,
+) {
 	if (status !== ThresholdStatus.Normal) {
-		console.warn("Threshold surpassed:", status === ThresholdStatus.Below ? "below" : "above");
+		console.warn(
+			"Threshold surpassed:",
+			status === ThresholdStatus.Below ? "below" : "above",
+		);
 	} else {
 		console.log("Value returned to normal range");
 	}
@@ -80,7 +97,11 @@ async function handleNotifications(sensorId: number, status: ThresholdStatus, va
 	await createNotification(sensorId, status, value);
 }
 
-async function createNotification(sensorId: number, status: ThresholdStatus, value: number) {
+async function createNotification(
+	sensorId: number,
+	status: ThresholdStatus,
+	value: number,
+) {
 	await prisma.notifications.create({
 		data: {
 			sensorId,

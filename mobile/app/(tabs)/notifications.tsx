@@ -114,9 +114,6 @@ export default function Notifications() {
 		try {
 			const response = await makeApiRequest("/notifications/clear", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
 				failMessage: "Falha ao limpar notificações",
 			});
 
@@ -145,6 +142,16 @@ export default function Notifications() {
 					onPress: clearAllNotifications,
 				},
 			],
+		);
+	}
+
+	if (!notifications.length) {
+		return (
+			<BasePage title="Notificações">
+				<View className="flex flex-col items-center justify-center h-full">
+					<Text className="text-gray-500">Sem notificações</Text>
+				</View>
+			</BasePage>
 		);
 	}
 

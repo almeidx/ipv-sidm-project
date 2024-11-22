@@ -35,6 +35,16 @@ export interface GetSensorsDataResult {
 		minValue: number;
 		thresholdWarning: "above" | "below" | null;
 		sensorTypeId: number;
+
+		maxThreshold: number;
+		minThreshold: number;
+
+		minPastDay: number | null;
+		maxPastDay: number | null;
+		avgPastDay: number | null;
+		minPastWeek: number | null;
+		maxPastWeek: number | null;
+		avgPastWeek: number | null;
 	}[];
 }
 

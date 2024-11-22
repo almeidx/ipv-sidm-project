@@ -11,6 +11,7 @@ import { Button } from "../../components/button";
 import { Input } from "../../components/input";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { CacheKey } from "../../lib/cache";
 
 dayjs.locale("pt");
 
@@ -63,7 +64,7 @@ export default function Profile() {
 				text: "Sim",
 				style: "destructive",
 				onPress: async () => {
-					await SecureStore.deleteItemAsync("authToken");
+					await SecureStore.deleteItemAsync(CacheKey.AuthToken);
 					toast.success("Sessão encerrada com sucesso");
 					router.push("/login");
 				},
@@ -91,7 +92,7 @@ export default function Profile() {
 							});
 
 							toast.success("Conta apagada com sucesso");
-							await SecureStore.deleteItemAsync("authToken");
+							await SecureStore.deleteItemAsync(CacheKey.AuthToken);
 							router.push("/login");
 						} catch (error) {
 							console.error("Erro ao apagar conta:", error);

@@ -1,45 +1,69 @@
 import * as SecureStore from "expo-secure-store";
 import { toast } from "sonner-native";
 import { API_URL } from "./constants";
+import { CacheKey } from "./cache";
 
-export async function makeApiRequest(endpoint: string, init?: MakeApiRequestOptions): Promise<null>;
+export async function makeApiRequest(
+	endpoint: string,
+	init?: MakeApiRequestOptions,
+): Promise<null>;
 export async function makeApiRequest<Result>(
 	endpoint: string,
 	init?: MakeApiRequestOptions,
 ): Promise<MakeApiRequestResult<Result>>;
 export async function makeApiRequest<Result>(
 	endpoint: string,
-	{ query, failMessage = "Unknown error when getting data", ...init }: MakeApiRequestOptions = {},
+	{
+		query,
+		failMessage = "Unknown error when getting data",
+		...init
+	}: MakeApiRequestOptions = {},
 ): Promise<MakeApiRequestResult<Result> | null> {
 	try {
 		const queryString = query
-			? new URLSearchParams(Object.fromEntries(Object.entries(query).filter(([, value]) => value))).toString()
+			? new URLSearchParams(
+					Object.fromEntries(
+						Object.entries(query).filter(([, value]) => value),
+					),
+				).toString()
 			: "";
 
-		const authToken = await SecureStore.getItemAsync("authToken");
+		const authToken = await SecureStore.getItemAsync(CacheKey.AuthToken);
 		if (authToken) {
 			init.headers ??= {};
-			(init.headers as { Authorization: string }).Authorization = `Bearer ${authToken}`;
+			(init.headers as { Authorization: string }).Authorization =
+				`Bearer ${authToken}`;
 		}
 
-		const response = await fetch(`${API_URL}${endpoint}${query ? `?${queryString}` : ""}`, init);
+		const response = await fetch(
+			`${API_URL}${endpoint}${query ? `?${queryString}` : ""}`,
+			init,
+		);
 
 		if (!response.ok) {
-			if (response.status === 401 && response.headers.get("content-type")?.includes("application/json")) {
+			if (
+				response.status === 401 &&
+				response.headers.get("content-type")?.includes("application/json")
+			) {
 				const data = await response.json();
 				if (data.message === "Authorization token expired") {
 					toast.error("Sessão expirada, por favor faça login novamente");
-					await SecureStore.deleteItemAsync("authToken");
+					await SecureStore.deleteItemAsync(CacheKey.AuthToken);
 					return null;
 				}
 			}
 
-			console.error(`Failed to fetch ${endpoint} (code: ${response.status}):`, await response.text());
+			console.error(
+				`Failed to fetch ${endpoint} (code: ${response.status}):`,
+				await response.text(),
+			);
 			toast.error(failMessage);
 			return { data: null, response };
 		}
 
-		const isJsonResponse = response.headers.get("content-type")?.includes("application/json");
+		const isJsonResponse = response.headers
+			.get("content-type")
+			?.includes("application/json");
 		if (!isJsonResponse) {
 			return { data: null, response };
 		}

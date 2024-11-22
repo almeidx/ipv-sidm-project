@@ -163,6 +163,7 @@ export default function Home() {
 										hideYAxisText
 										thickness={2}
 										yAxisOffset={sensor.minValue}
+										curved
 										color={sensor.thresholdWarning === null ? "green" : "red"}
 									/>
 								</View>

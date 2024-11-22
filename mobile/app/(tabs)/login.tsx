@@ -7,6 +7,7 @@ import { BasePage } from "../../components/base-page";
 import { Button } from "../../components/button";
 import { Input } from "../../components/input";
 import { API_URL } from "../../lib/constants";
+import { CacheKey } from "../../lib/cache";
 
 export default function Login() {
 	const router = useRouter();
@@ -31,7 +32,7 @@ export default function Login() {
 				case 200: {
 					const { token } = (await response.json()) as { token: string };
 
-					await SecureStore.setItemAsync("authToken", token);
+					await SecureStore.setItemAsync(CacheKey.AuthToken, token);
 
 					toast.success("Logged in successfully");
 					router.push("/profile");
@@ -55,7 +56,11 @@ export default function Login() {
 				}
 
 				default: {
-					console.error("Unknown error occurred", response.status, await response.text());
+					console.error(
+						"Unknown error occurred",
+						response.status,
+						await response.text(),
+					);
 					toast.error("Unknown error occurred");
 					break;
 				}
@@ -69,7 +74,12 @@ export default function Login() {
 	return (
 		<BasePage centerContent>
 			<View className="flex-1 justify-center items-center w-full gap-6 px-5 min-h-96">
-				<Input placeholder="Email" textContentType="emailAddress" value={email} onChangeText={setEmail} />
+				<Input
+					placeholder="Email"
+					textContentType="emailAddress"
+					value={email}
+					onChangeText={setEmail}
+				/>
 
 				<Input
 					placeholder="Password"
@@ -83,7 +93,10 @@ export default function Login() {
 			</View>
 
 			<View className="justify-center items-center w-full gap-6 px-5">
-				<Button title="Create new account" onPress={() => router.push("/sign-up")} />
+				<Button
+					title="Create new account"
+					onPress={() => router.push("/sign-up")}
+				/>
 			</View>
 		</BasePage>
 	);
