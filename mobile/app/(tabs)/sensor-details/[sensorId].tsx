@@ -38,6 +38,7 @@ export default function SensorDetails() {
 
 				if (data) {
 					setSensorData(data.sensor);
+					console.log(data.sensor);
 				}
 			} catch (error) {
 				console.error("Erro ao buscar dados do sensor:", error);
@@ -124,6 +125,7 @@ export default function SensorDetails() {
 							</Text>
 						</View>
 						<Ionicons
+							className="-mr-6"
 							size={50}
 							name={getSensorIcon(sensorData.sensorTypeId)}
 							color="gray"

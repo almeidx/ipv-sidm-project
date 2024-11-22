@@ -26,6 +26,7 @@ import { getCurrentUser } from "#routes/users/get-current-user.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
+import { deleteAccount } from "#routes/users/delete-account.ts";
 
 declare module "@fastify/jwt" {
 	export interface FastifyJWT {
@@ -58,7 +59,9 @@ app.setErrorHandler((error, request, reply) => {
 		}
 
 		if (error.code === "FST_JWT_AUTHORIZATION_TOKEN_INVALID") {
-			reply.header("X-Auth-Error", "malformed").send({ message: "Unauthorized" });
+			reply
+				.header("X-Auth-Error", "malformed")
+				.send({ message: "Unauthorized" });
 			return;
 		}
 
@@ -110,7 +113,13 @@ app.setErrorHandler((err, req, reply) => {
 });
 
 app.addHook("onResponse", (request, reply, done) => {
-	console.info("Request completed", request.method, request.url, reply.statusCode, prettyMs(reply.elapsedTime));
+	console.info(
+		"Request completed",
+		request.method,
+		request.url,
+		reply.statusCode,
+		prettyMs(reply.elapsedTime),
+	);
 	done();
 });
 
@@ -132,6 +141,7 @@ await app.register(async (instance) => {
 	await instance.register(createSensor);
 
 	// users
+	await instance.register(deleteAccount);
 	await instance.register(signUp);
 	await instance.register(login);
 	await instance.register(getCurrentUser);

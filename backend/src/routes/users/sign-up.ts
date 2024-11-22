@@ -43,15 +43,7 @@ export const signUp: FastifyPluginAsyncZod = async (app) => {
 				},
 			});
 
-			const payload = {
-				email: user.email,
-				name: user.name,
-			};
-
-			const token = app.jwt.sign(payload, {
-				sub: user.id,
-				expiresIn: "1h",
-			});
+			const token = app.jwt.sign({}, { sub: user.id, expiresIn: "1h" });
 
 			reply.statusCode = 201;
 

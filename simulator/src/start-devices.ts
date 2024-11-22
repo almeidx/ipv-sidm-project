@@ -20,25 +20,33 @@ console.log("Starting devices...");
 const children: ChildProcess[] = [];
 
 for (const { sensorId, sensorTypeId, indexOfType } of devices) {
-	const child = spawn("node", ["--experimental-transform-types", "--env-file=.env", "src/index.ts"], {
-		env: {
-			...process.env,
-			SENSOR_ID: sensorId.toString(),
-			SENSOR_TYPE_ID: sensorTypeId.toString(),
-			SENSOR_TYPE_INDEX: indexOfType.toString(),
+	const child = spawn(
+		"node",
+		["--experimental-transform-types", "--env-file=.env", "src/index.ts"],
+		{
+			env: {
+				...process.env,
+				SENSOR_ID: sensorId.toString(),
+				SENSOR_TYPE_ID: sensorTypeId.toString(),
+				SENSOR_TYPE_INDEX: indexOfType.toString(),
+			},
+			stdio: "inherit",
 		},
-		stdio: "inherit",
-	});
+	);
 
 	children.push(child);
 
 	child
-		.on("exit", (code, signal) => console.error(`${sensorId} exited`, { code, signal }))
+		.on("exit", (code, signal) =>
+			console.error(`${sensorId} exited`, { code, signal }),
+		)
 		.on("error", (err) => console.error(`Device ${sensorId} errored:`, err))
-		.on("close", (code, signal) => console.error(`${sensorId} closed`, { code, signal }))
+		.on("close", (code, signal) =>
+			console.error(`${sensorId} closed`, { code, signal }),
+		)
 		.on("disconnect", () => console.error(`Device ${sensorId} disconnected`));
 
-	await sleep(random(1_000, 5_000));
+	await sleep(random(250, 2_500));
 }
 
 process.on("SIGINT", () => {

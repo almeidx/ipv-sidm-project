@@ -1,13 +1,12 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
 import type { GetSensorTypesResult } from "../../lib/api-types";
 import { makeApiRequest } from "../../lib/make-api-request";
 import DropdownSelect from "react-native-input-select";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");
@@ -107,17 +106,10 @@ export default function CreateSensor() {
 				<View className="w-full h-14 rounded-lg bg-white/10 justify-center mt-4 -mb-3">
 					<DropdownSelect
 						placeholder="Selecione um tipo de sensor"
-						options={[
-							{
-								label: "Selecione um tipo de sensor",
-								value: null,
-								color: "#999999",
-							},
-							...sensorTypes.map((type) => ({
-								label: type.name,
-								value: type.id.toString(),
-							})),
-						]}
+						options={sensorTypes.map((type) => ({
+							label: type.name,
+							value: type.id.toString(),
+						}))}
 						selectedValue={selectedValue}
 						onValueChange={(value) => setSelectedValue(value as string)}
 						primaryColor="black"
@@ -170,7 +162,7 @@ export default function CreateSensor() {
 					className="flex flex-row gap-3 items-center justify-center bg-zinc-300 rounded-3xl w-11/12 h-14"
 					onPress={handleCreate}
 				>
-					<FontAwesome size={25} name="plus-circle" />
+					<Ionicons size={25} name="add-circle-outline" />
 					<Text className="text-black text-xl font-bold">Adicionar Sensor</Text>
 				</TouchableOpacity>
 			</View>

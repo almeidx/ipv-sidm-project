@@ -23,10 +23,17 @@ export default function Home() {
 		GetSensorsDataResult["sensors"]
 	>([]);
 	const [search, setSearch] = useState("");
-
+	const [favoriteSensors, setFavoriteSensors] = useState<string[]>([]);
 	const { order, sensorTypes, favourites, threshold } = useSensorFilters();
 
 	useEffect(() => {
+		async function loadFavorites() {
+			const favourites = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
+			if (favourites) {
+				setFavoriteSensors(JSON.parse(favourites));
+			}
+		}
+
 		async function fetchSensorsData() {
 			const pastHour = new Date();
 			pastHour.setHours(pastHour.getHours() - 1);
@@ -51,15 +58,23 @@ export default function Home() {
 			}
 
 			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(
-				({ data }) => {
+				async ({ data }) => {
 					if (data) {
-						setSensorsData(data.sensors);
-						// toast.loading("Dados atualizados");
+						const sensorIds = JSON.parse(
+							(await AsyncStorage.getItem(CacheKey.FavouriteSensors)) || "[]",
+						);
+						const sensorsWithFavorites = data.sensors.map((sensor) => ({
+							...sensor,
+							isFavorite: sensorIds.includes(sensor.id),
+						}));
+
+						setSensorsData(sensorsWithFavorites);
 					}
 				},
 			);
 		}
 
+		loadFavorites();
 		fetchSensorsData();
 
 		const interval = setInterval(fetchSensorsData, FETCH_SENSORS_DATA_INTERVAL);
@@ -88,7 +103,15 @@ export default function Home() {
 					/>
 				</View>
 
-				<Popover from={<Ionicons size={40} name="reorder-four" />}>
+				<Popover
+					from={
+						<Ionicons
+							size={40}
+							name="reorder-four"
+							style={{ marginLeft: -10 }}
+						/>
+					}
+				>
 					<SensorsFilterPopover />
 				</Popover>
 			</View>
@@ -113,6 +136,15 @@ export default function Home() {
 									<View className="flex flex-col gap-1">
 										<Text className="text-xl font-semibold">{sensor.name}</Text>
 									</View>
+
+									{favoriteSensors.includes(sensor.id.toString()) && (
+										<Ionicons
+											size={20}
+											name="star"
+											color="#a18b00"
+											style={{ marginLeft: 8 }}
+										/>
+									)}
 
 									<View className="ml-auto">
 										<Text className="text-lg">{sensor.currentValue}</Text>

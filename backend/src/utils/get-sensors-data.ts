@@ -39,9 +39,9 @@ export async function getSensorsDataImpl({
 	if (sensorId) {
 		conditions.push(`s.id = ${sensorId}`);
 	} else if (sensorIds?.length) {
-		conditions.push(`s.id IN (${Prisma.join(sensorIds)})`);
+		conditions.push(`s.id IN (${sensorIds.join(", ")})`);
 	} else if (excludeSensorIds?.length) {
-		conditions.push(`s.id NOT IN (${Prisma.join(excludeSensorIds)})`);
+		conditions.push(`s.id NOT IN (${excludeSensorIds.join(", ")})`);
 	}
 
 	if (query) {
@@ -49,7 +49,7 @@ export async function getSensorsDataImpl({
 	}
 
 	if (sensorTypeIds?.length) {
-		conditions.push(`s.sensor_type_id IN (${Prisma.join(sensorTypeIds)})`);
+		conditions.push(`s.sensor_type_id IN (${sensorTypeIds.join(", ")})`);
 		console.log(conditions);
 	}
 
@@ -61,23 +61,29 @@ export async function getSensorsDataImpl({
 	const whereClause =
 		conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-	let orderByClause = "";
+	const orderByConditions: string[] = [];
 	switch (order) {
 		case SensorOrder.NameAsc:
-			orderByClause = "ORDER BY rd.name ASC";
+			orderByConditions.push("cs.name ASC");
 			break;
 		case SensorOrder.NameDesc:
-			orderByClause = "ORDER BY rd.name DESC";
+			orderByConditions.push("cs.name DESC");
 			break;
 		case SensorOrder.TypeAsc:
-			orderByClause = "ORDER BY rd.sensor_type_id ASC";
+			orderByConditions.push("cs.sensor_type_id ASC");
 			break;
 		case SensorOrder.TypeDesc:
-			orderByClause = "ORDER BY rd.sensor_type_id DESC";
+			orderByConditions.push("cs.sensor_type_id DESC");
 			break;
 		default:
-			orderByClause = "ORDER BY rd.sensor_created_at ASC";
+			orderByConditions.push("cs.sensor_created_at ASC");
+			break;
 	}
+
+	orderByConditions.push("cs.id ASC");
+
+	const pastDayTimestamp = dayjs().subtract(1, "day").valueOf();
+	const pastWeekTimestamp = dayjs().subtract(1, "week").valueOf();
 
 	const sql = Prisma.sql`
 		WITH ranked_data AS (
@@ -95,23 +101,50 @@ export async function getSensorsDataImpl({
 			FROM sensors s
 			LEFT JOIN sensor_data sd ON s.id = sd.sensor_id
 			${Prisma.raw(whereClause)}
+		),
+		calculated_step AS (
+			SELECT
+				*,
+				CASE WHEN (total_points - 1) / 29.0 < 1 THEN 1 ELSE ROUND((total_points - 1) / 29.0) END AS step_size
+			FROM ranked_data
+		),
+		aggregated_day AS (
+			SELECT
+				sensor_id,
+				MIN(value) AS min_past_day,
+				MAX(value) AS max_past_day
+			FROM sensor_data
+			WHERE created_at >= ${Prisma.raw(pastDayTimestamp.toString())}
+			GROUP BY sensor_id
+		),
+		aggregated_week AS (
+			SELECT
+				sensor_id,
+				MIN(value) AS min_past_week,
+				MAX(value) AS max_past_week
+			FROM sensor_data
+			WHERE created_at >= ${Prisma.raw(pastWeekTimestamp.toString())}
+			GROUP BY sensor_id
 		)
 		SELECT
-			rd.*,
-			st.unit
-		FROM ranked_data rd
-		LEFT JOIN sensor_types st ON rd.sensor_type_id = st.id
+			cs.*,
+			st.unit,
+			ad.min_past_day,
+			ad.max_past_day,
+			aw.min_past_week,
+			aw.max_past_week
+		FROM calculated_step cs
+		INNER JOIN sensor_types st ON cs.sensor_type_id = st.id
+		LEFT JOIN aggregated_day ad ON cs.id = ad.sensor_id
+		LEFT JOIN aggregated_week aw ON cs.id = aw.sensor_id
 		WHERE (
 			row_num = 1
 			OR row_num = total_points
 			OR (
-				row_num > 1
-				AND row_num < total_points
-				AND (row_num * 5 / CAST(total_points AS FLOAT)) =
-					CAST((row_num * 5 / CAST(total_points AS FLOAT)) AS INTEGER)
+				(row_num - 1) % step_size = 0
 			)
 		)
-		${Prisma.raw(orderByClause)}
+		ORDER BY ${Prisma.raw(orderByConditions.join(", "))}
 	`;
 
 	console.log(sql.strings[0]);
@@ -127,10 +160,13 @@ export async function getSensorsDataImpl({
 				value: number | null;
 				created_at: Date;
 				unit: string;
+				min_past_day: number | null;
+				max_past_day: number | null;
+				min_past_week: number | null;
+				max_past_week: number | null;
 			}[]
 		>(sql);
 
-	// Process and format results
 	const sensorMap = new Map<
 		number,
 		{
@@ -140,9 +176,14 @@ export async function getSensorsDataImpl({
 			maxThreshold: number;
 			minThreshold: number;
 			unit: string;
-			sensorData: { value: number; createdAt: Date }[];
+			sensorData: { value: number }[];
 			currentValue: string | null;
 			minValue: number;
+
+			minPastDay: number | null;
+			maxPastDay: number | null;
+			minPastWeek: number | null;
+			maxPastWeek: number | null;
 		}
 	>();
 
@@ -158,6 +199,11 @@ export async function getSensorsDataImpl({
 				sensorData: [],
 				currentValue: null,
 				minValue: Number.POSITIVE_INFINITY,
+
+				minPastDay: row.min_past_day,
+				maxPastDay: row.max_past_day,
+				minPastWeek: row.min_past_week,
+				maxPastWeek: row.max_past_week,
 			});
 		}
 
@@ -166,7 +212,7 @@ export async function getSensorsDataImpl({
 		if (row.value !== null) {
 			sensor.sensorData.push({
 				value: row.value,
-				createdAt: row.created_at,
+				// createdAt: row.created_at,
 			});
 			sensor.minValue = Math.min(sensor.minValue, row.value);
 		}
@@ -184,9 +230,7 @@ export async function getSensorsDataImpl({
 		return {
 			...sensor,
 			currentValue: `${currentValue} ${sensor.unit ?? ""}`,
-			sensorData: sensor.sensorData.map((data) => ({
-				value: data.value,
-			})),
+			sensorData: sensor.sensorData,
 			thresholdWarning,
 		};
 	});
