@@ -12,7 +12,7 @@ import {
 } from "fastify-type-provider-zod";
 import prettyMs from "pretty-ms";
 import { env } from "#lib/env.ts";
-import { getStatus } from "#routes/get-status.ts";
+import { getHealth } from "#routes/get-health.ts";
 import { clearNotifications } from "#routes/notifications/clear-notifications.ts";
 import { getNotifications } from "#routes/notifications/get-notifications.ts";
 import { markNotificationAsRead } from "#routes/notifications/mark-notification-as-read.ts";
@@ -147,7 +147,7 @@ await app.register(async (instance) => {
 	await instance.register(getCurrentUser);
 	await instance.register(editCurrentUser);
 
-	await instance.register(getStatus);
+	await instance.register(getHealth);
 	await instance.register(webSocketRoute);
 });
 
