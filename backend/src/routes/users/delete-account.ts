@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
-import { isAuthenticated } from "../../middleware/is-authenticated.ts";
+import { isAuthenticated } from "#middleware/is-authenticated.ts";
 
 export const deleteAccount: FastifyPluginAsyncZod = async (app) => {
 	app.delete(

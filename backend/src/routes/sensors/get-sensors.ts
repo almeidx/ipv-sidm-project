@@ -1,11 +1,13 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
+import { isAuthenticated } from "#middleware/is-authenticated.ts";
 
 export const getSensors: FastifyPluginAsyncZod = async (app) => {
 	app.get(
 		"/sensors",
 		{
+			preHandler: [isAuthenticated],
 			schema: {
 				response: {
 					200: z.object({

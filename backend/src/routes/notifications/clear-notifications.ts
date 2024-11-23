@@ -1,11 +1,13 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
+import { isAuthenticated } from "#middleware/is-authenticated.ts";
 
 export const clearNotifications: FastifyPluginAsyncZod = async (app) => {
 	app.post(
 		"/notifications/clear",
 		{
+			preHandler: [isAuthenticated],
 			schema: {
 				response: {
 					200: z.object({

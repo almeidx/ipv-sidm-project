@@ -9,18 +9,14 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
 import "../global.css";
 import { SensorFiltersProvider } from "../contexts/sensor-filters-context";
+import { SessionProvider } from "../contexts/session-context";
 
-export {
-	// Catch any errors thrown by the Layout component.
-	ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-	// Ensure that reloading on `/modal` keeps a back button present.
 	initialRouteName: "(tabs)",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -29,7 +25,6 @@ export default function RootLayout() {
 		...Ionicons.font,
 	});
 
-	// Expo Router uses Error Boundaries to catch errors in the navigation tree.
 	useEffect(() => {
 		if (error) throw error;
 	}, [error]);
@@ -52,12 +47,14 @@ function RootLayoutNav() {
 		<SafeAreaProvider>
 			<GestureHandlerRootView>
 				<SensorFiltersProvider>
-					<Stack>
-						<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-						{/* <Stack.Screen name="sensor-filter-modal" options={{ presentation: "modal", headerShown: false }} /> */}
-					</Stack>
+					<SessionProvider>
+						<Stack>
+							<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+							<Stack.Screen name="sign-in" options={{ headerShown: false }} />
+						</Stack>
 
-					<Toaster position="bottom-center" />
+						<Toaster position="bottom-center" />
+					</SessionProvider>
 				</SensorFiltersProvider>
 			</GestureHandlerRootView>
 		</SafeAreaProvider>

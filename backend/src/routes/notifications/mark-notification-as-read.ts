@@ -1,11 +1,13 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "#lib/prisma.ts";
+import { isAuthenticated } from "#middleware/is-authenticated.ts";
 
 export const markNotificationAsRead: FastifyPluginAsyncZod = async (app) => {
 	app.post(
 		"/notifications/:id/mark-as-read",
 		{
+			preHandler: [isAuthenticated],
 			schema: {
 				params: z.object({
 					id: z.string().regex(/^\d+$/),

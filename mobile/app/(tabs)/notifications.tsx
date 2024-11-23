@@ -88,25 +88,17 @@ export default function Notifications() {
 
 	async function markAsRead(id: number) {
 		try {
-			const response = await fetch(
-				`${API_URL}/notifications/${id}/mark-as-read`,
-				{
-					method: "POST",
-				},
-			);
-
-			if (!response.ok) {
-				console.log(response);
-				throw new Error("Failed to mark notification as read");
-			}
+			const result = await makeApiRequest(`/notifications/${id}/mark-as-read`, {
+				method: "POST",
+				failMessage: "Falha ao marcar a notificação como lida",
+			});
 
 			setNotifications((prevNotifications) =>
 				prevNotifications.filter((notification) => notification.id !== id),
 			);
-
 			toast.info("Notificação marcada como lida");
 		} catch (error) {
-			console.error("Error marking notification as read:", error);
+			console.error("Erro ao marcar notificação como lida:", error);
 		}
 	}
 
@@ -119,7 +111,7 @@ export default function Notifications() {
 
 			if (response) {
 				setNotifications([]);
-				Alert.alert("Sucesso", "Todas as notificações foram removidas!");
+				toast.info("Todas as notificações foram removidas!");
 			}
 		} catch (error) {
 			console.error("Erro ao limpar notificações:", error);
@@ -148,8 +140,19 @@ export default function Notifications() {
 	if (!notifications.length) {
 		return (
 			<BasePage title="Notificações">
-				<View className="flex flex-col items-center justify-center h-full">
-					<Text className="text-gray-500">Sem notificações</Text>
+				<View
+					style={{
+						height: 500,
+						flex: 1,
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<View className="flex flex-col items-center">
+						<Ionicons name="notifications-off" size={40} color="gray" />
+						<Text className="text-gray-500 mt-4">Sem notificações</Text>
+					</View>
 				</View>
 			</BasePage>
 		);

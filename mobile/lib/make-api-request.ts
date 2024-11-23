@@ -40,11 +40,12 @@ export async function makeApiRequest<Result>(
 			init,
 		);
 
+		const isJsonResponse = response.headers
+			.get("content-type")
+			?.includes("application/json");
+
 		if (!response.ok) {
-			if (
-				response.status === 401 &&
-				response.headers.get("content-type")?.includes("application/json")
-			) {
+			if (response.status === 401 && isJsonResponse) {
 				const data = await response.json();
 				if (data.message === "Authorization token expired") {
 					toast.error("Sessão expirada, por favor faça login novamente");
@@ -61,9 +62,6 @@ export async function makeApiRequest<Result>(
 			return { data: null, response };
 		}
 
-		const isJsonResponse = response.headers
-			.get("content-type")
-			?.includes("application/json");
 		if (!isJsonResponse) {
 			return { data: null, response };
 		}

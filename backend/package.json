@@ -3,6 +3,7 @@
 	"type": "module",
 	"imports": {
 		"#lib/*": "./src/lib/*",
+		"#middleware/*": "./src/middleware/*",
 		"#routes/*": "./src/routes/*",
 		"#utils/*": "./src/utils/*",
 		"#ws/*": "./src/ws/*"
@@ -40,7 +41,7 @@
 		"prisma-erd-generator": "^1.11.2",
 		"typescript": "~5.6.3"
 	},
-	"packageManager": "pnpm@9.13.2",
+	"packageManager": "pnpm@9.14.2",
 	"engines": {
 		"node": ">=22"
 	}

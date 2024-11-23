@@ -1,22 +1,21 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import dayjs from "dayjs";
+import "dayjs/locale/pt";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Text, View } from "react-native";
-import { BasePage } from "../../components/base-page";
-import type { GetCurrentUserResult } from "../../lib/api-types";
-import { makeApiRequest } from "../../lib/make-api-request";
-import "dayjs/locale/pt";
 import { toast } from "sonner-native";
+import { BasePage } from "../../components/base-page";
 import { Button } from "../../components/button";
 import { Input } from "../../components/input";
-import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import { CacheKey } from "../../lib/cache";
+import { useSession } from "../../contexts/session-context";
+import type { GetCurrentUserResult } from "../../lib/api-types";
+import { makeApiRequest } from "../../lib/make-api-request";
 
 dayjs.locale("pt");
 
 export default function Profile() {
-	const router = useRouter();
+	const { signOut } = useSession();
+
 	const [user, setUser] = useState<GetCurrentUserResult | null>(null);
 	const [name, setName] = useState<string>("");
 	const [email, setEmail] = useState<string>("");
@@ -29,30 +28,31 @@ export default function Profile() {
 					"/users/@me",
 					{
 						method: "GET",
-						headers: {
-							"Content-Type": "application/json",
-						},
 						failMessage: "Falha ao buscar dados do utilizador",
 					},
 				);
 
-				if (data) {
-					const formattedUser = {
-						...data,
-						createdAt: dayjs(data.createdAt).format("D [de] MMMM [de] YYYY"),
-					};
-
-					setUser(formattedUser);
-					setName(formattedUser.name);
-					setEmail(formattedUser.email);
+				if (!data) {
+					await signOut();
+					return;
 				}
+
+				const formattedUser = {
+					...data,
+					createdAt: dayjs(data.createdAt).format("D [de] MMMM [de] YYYY"),
+				};
+
+				setUser(formattedUser);
+				setName(formattedUser.name);
+				setEmail(formattedUser.email);
 			} catch (error) {
-				console.error("Erro ao buscar dados do utilizador:", error);
+				console.error("Failed to fetch user details:", error);
+				toast.error("Não foi possível recolher os dados do utilizador");
 			}
 		}
 
 		fetchUser();
-	}, []);
+	}, [signOut]);
 
 	async function handleLogout() {
 		Alert.alert("", "Tem a certeza que deseja terminar a sessão?", [
@@ -64,9 +64,8 @@ export default function Profile() {
 				text: "Sim",
 				style: "destructive",
 				onPress: async () => {
-					await SecureStore.deleteItemAsync(CacheKey.AuthToken);
 					toast.success("Sessão encerrada com sucesso");
-					router.push("/login");
+					signOut();
 				},
 			},
 		]);
@@ -92,8 +91,7 @@ export default function Profile() {
 							});
 
 							toast.success("Conta apagada com sucesso");
-							await SecureStore.deleteItemAsync(CacheKey.AuthToken);
-							router.push("/login");
+							signOut();
 						} catch (error) {
 							console.error("Erro ao apagar conta:", error);
 							toast.error("Erro ao apagar conta. Por favor, tente novamente.");

@@ -21,12 +21,14 @@ export const singleSensorDataSchema = z.object({
 	maxThreshold: z.number(),
 	minThreshold: z.number(),
 
-	minPastDay: z.number().nullable(),
-	maxPastDay: z.number().nullable(),
-	avgPastDay: z.number().nullable(),
-	minPastWeek: z.number().nullable(),
-	maxPastWeek: z.number().nullable(),
-	avgPastWeek: z.number().nullable(),
+	minPastDay: z.number(),
+	maxPastDay: z.number(),
+	avgPastDay: z.number(),
+	stddevPastDay: z.number(),
+	minPastWeek: z.number(),
+	maxPastWeek: z.number(),
+	avgPastWeek: z.number(),
+	stddevPastWeek: z.number(),
 });
 
 export async function getSensorsDataImpl({
@@ -63,9 +65,9 @@ export async function getSensorsDataImpl({
 		console.log(conditions);
 	}
 
-	conditions.push(`sd.created_at >= ${startDate.valueOf()}`);
+	conditions.push(`sd.created_at >= '${startDate.toISOString()}'`);
 	if (endDate) {
-		conditions.push(`sd.created_at <= ${endDate.valueOf()}`);
+		conditions.push(`sd.created_at <= '${endDate.toISOString()}'`);
 	}
 
 	const whereClause =
@@ -92,8 +94,8 @@ export async function getSensorsDataImpl({
 
 	orderByConditions.push("cs.id ASC");
 
-	const pastDayTimestamp = dayjs().subtract(1, "day").valueOf();
-	const pastWeekTimestamp = dayjs().subtract(1, "week").valueOf();
+	const pastDayTimestamp = dayjs().subtract(1, "day");
+	const pastWeekTimestamp = dayjs().subtract(1, "week");
 
 	const sql = Prisma.sql`
 		WITH ranked_data AS (
@@ -123,9 +125,10 @@ export async function getSensorsDataImpl({
 				sensor_id,
 				MIN(value) AS min_past_day,
 				MAX(value) AS max_past_day,
-				AVG(value) AS avg_past_day
+				AVG(value) AS avg_past_day,
+				STDDEV(value) AS stddev_past_day
 			FROM sensor_data
-			WHERE created_at >= ${Prisma.raw(pastDayTimestamp.toString())}
+			WHERE created_at >= '${Prisma.raw(pastDayTimestamp.toISOString())}'
 			GROUP BY sensor_id
 		),
 		aggregated_week AS (
@@ -133,9 +136,10 @@ export async function getSensorsDataImpl({
 				sensor_id,
 				MIN(value) AS min_past_week,
 				MAX(value) AS max_past_week,
-				AVG(value) AS avg_past_week
+				AVG(value) AS avg_past_week,
+				STDDEV(value) AS stddev_past_week
 			FROM sensor_data
-			WHERE created_at >= ${Prisma.raw(pastWeekTimestamp.toString())}
+			WHERE created_at >= '${Prisma.raw(pastWeekTimestamp.toISOString())}'
 			GROUP BY sensor_id
 		)
 		SELECT
@@ -144,9 +148,11 @@ export async function getSensorsDataImpl({
 			ad.min_past_day,
 			ad.max_past_day,
 			ad.avg_past_day,
+			ad.stddev_past_day,
 			aw.min_past_week,
 			aw.max_past_week,
-			aw.avg_past_week
+			aw.avg_past_week,
+			aw.stddev_past_week
 		FROM calculated_step cs
 		INNER JOIN sensor_types st ON cs.sensor_type_id = st.id
 		LEFT JOIN aggregated_day ad ON cs.id = ad.sensor_id
@@ -154,9 +160,7 @@ export async function getSensorsDataImpl({
 		WHERE (
 			row_num = 1
 			OR row_num = total_points
-			OR (
-				(row_num - 1) % step_size = 0
-			)
+			OR ((row_num - 1) % step_size = 0)
 		)
 		ORDER BY ${Prisma.raw(orderByConditions.join(", "))}
 	`;
@@ -177,9 +181,11 @@ export async function getSensorsDataImpl({
 				min_past_day: number | null;
 				max_past_day: number | null;
 				avg_past_day: number | null;
+				stddev_past_day: number | null;
 				min_past_week: number | null;
 				max_past_week: number | null;
 				avg_past_week: number | null;
+				stddev_past_week: number | null;
 			}[]
 		>(sql);
 
@@ -196,12 +202,14 @@ export async function getSensorsDataImpl({
 			currentValue: string | null;
 			minValue: number;
 
-			minPastDay: number | null;
-			maxPastDay: number | null;
-			avgPastDay: number | null;
-			minPastWeek: number | null;
-			maxPastWeek: number | null;
-			avgPastWeek: number | null;
+			minPastDay: number;
+			maxPastDay: number;
+			avgPastDay: number;
+			stddevPastDay: number;
+			minPastWeek: number;
+			maxPastWeek: number;
+			avgPastWeek: number;
+			stddevPastWeek: number;
 		}
 	>();
 
@@ -218,12 +226,14 @@ export async function getSensorsDataImpl({
 				currentValue: null,
 				minValue: Number.POSITIVE_INFINITY,
 
-				minPastDay: row.min_past_day,
-				maxPastDay: row.max_past_day,
-				avgPastDay: row.avg_past_day,
-				minPastWeek: row.min_past_week,
-				maxPastWeek: row.max_past_week,
-				avgPastWeek: row.avg_past_week,
+				minPastDay: row.min_past_day ?? 0,
+				maxPastDay: row.max_past_day ?? 0,
+				avgPastDay: row.avg_past_day ?? 0,
+				stddevPastDay: row.stddev_past_day ?? 0,
+				minPastWeek: row.min_past_week ?? 0,
+				maxPastWeek: row.max_past_week ?? 0,
+				avgPastWeek: row.avg_past_week ?? 0,
+				stddevPastWeek: row.stddev_past_week ?? 0,
 			});
 		}
 

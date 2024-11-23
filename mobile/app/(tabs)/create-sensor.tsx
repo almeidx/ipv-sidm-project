@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
@@ -94,7 +94,7 @@ export default function CreateSensor() {
 	if (isLoading) {
 		return (
 			<BasePage>
-				<Text>Loading...</Text>
+				<ActivityIndicator size="large" color="blue" />
 			</BasePage>
 		);
 	}
@@ -120,23 +120,16 @@ export default function CreateSensor() {
 							paddingRight: 20,
 						}}
 						dropdownContainerStyle={{
-							width: "100%", // Largura completa
-							height: 50, // Altura equivalente a `h-14` (14 * 4 px)
-							borderWidth: 2, // Equivale a `border-2`
-							borderColor: "#D1D5DB", // Cor equivalente a `border-gray-300`
-							borderRadius: 8, // Equivale a `rounded-lg`
-							backgroundColor: "rgba(255, 255, 255, 0.1)", // Fundo transparente
-							justifyContent: "center", // Centraliza verticalmente o conteúdo
+							width: "100%",
+							height: 50,
+							borderWidth: 2,
+							borderColor: "#D1D5DB",
+							borderRadius: 8,
+							backgroundColor: "rgba(255, 255, 255, 0.1)",
+							justifyContent: "center",
 							margin: 0,
-							paddingRight: 3, // Remove margens adicionais
-							paddingLeft: 15, // Remove margens adicionais
-						}}
-						textStyle={{
-							color: "black",
-							backgroundColor: "transparent",
-							textAlign: "center",
-							fontSize: 16,
-							paddingLeft: 5,
+							paddingRight: 3,
+							paddingLeft: 15,
 						}}
 						dropdownIconStyle={{
 							marginTop: -18,

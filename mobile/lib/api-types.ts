@@ -39,12 +39,14 @@ export interface GetSensorsDataResult {
 		maxThreshold: number;
 		minThreshold: number;
 
-		minPastDay: number | null;
-		maxPastDay: number | null;
-		avgPastDay: number | null;
-		minPastWeek: number | null;
-		maxPastWeek: number | null;
-		avgPastWeek: number | null;
+		minPastDay: number;
+		maxPastDay: number;
+		avgPastDay: number;
+		stddevPastDay: number;
+		minPastWeek: number;
+		maxPastWeek: number;
+		avgPastWeek: number;
+		stddevPastWeek: number;
 	}[];
 }
 

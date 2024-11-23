@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import Popover from "react-native-popover-view";
 import { BasePage } from "../../components/base-page";
@@ -22,6 +22,8 @@ export default function Home() {
 	const [sensorsData, setSensorsData] = useState<
 		GetSensorsDataResult["sensors"]
 	>([]);
+	const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+
 	const [search, setSearch] = useState("");
 	const [favoriteSensors, setFavoriteSensors] = useState<string[]>([]);
 	const { order, sensorTypes, favourites, threshold } = useSensorFilters();
@@ -70,6 +72,8 @@ export default function Home() {
 
 						setSensorsData(sensorsWithFavorites);
 					}
+
+					setIsInitialLoading(false);
 				},
 			);
 		}
@@ -117,7 +121,9 @@ export default function Home() {
 			</View>
 
 			<View className="flex flex-col w-full mt-4 gap-6">
-				{sensorsData.length ? (
+				{isInitialLoading ? (
+					<ActivityIndicator size="large" color="blue" />
+				) : sensorsData.length ? (
 					sensorsData.map((sensor) => (
 						<TouchableOpacity
 							key={sensor.id}

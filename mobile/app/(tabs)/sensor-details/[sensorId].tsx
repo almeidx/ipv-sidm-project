@@ -2,7 +2,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGlobalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+	ActivityIndicator,
+	ScrollView,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { toast } from "sonner-native";
 import { BasePage } from "../../../components/base-page";
@@ -18,15 +24,22 @@ export default function SensorDetails() {
 	const [sensorData, setSensorData] = useState<
 		GetSensorDataResult["sensor"] | null
 	>(null);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+
 	const [isFavorite, setIsFavorite] = useState<boolean>(false);
 	const [selectedTimeframe, setSelectedTimeframe] =
 		useState<(typeof timeframes)[number]>("1D");
 
 	useEffect(() => {
 		async function fetchSensorsData() {
-			try {
-				if (!sensorId) return;
+			if (!sensorId) {
+				setIsLoading(false);
+				return;
+			}
 
+			setIsLoading(true);
+
+			try {
 				const { data } = await makeApiRequest<GetSensorDataResult>(
 					`/sensors/${sensorId}/data`,
 					{
@@ -38,10 +51,11 @@ export default function SensorDetails() {
 
 				if (data) {
 					setSensorData(data.sensor);
-					console.log(data.sensor);
 				}
 			} catch (error) {
 				console.error("Erro ao buscar dados do sensor:", error);
+			} finally {
+				setIsLoading(false);
 			}
 		}
 
@@ -93,6 +107,14 @@ export default function SensorDetails() {
 		}
 	}
 
+	if (isLoading || (sensorData && sensorData.id !== Number(sensorId))) {
+		return (
+			<BasePage>
+				<ActivityIndicator size="large" color="blue" />
+			</BasePage>
+		);
+	}
+
 	if (!sensorData) {
 		return (
 			<BasePage>
@@ -114,7 +136,7 @@ export default function SensorDetails() {
 			}
 		>
 			<ScrollView>
-				<View className="p-4">
+				<View>
 					<View className="flex flex-row justify-between items-center">
 						<View className="flex gap-2">
 							<Text className="text-gray-700 text-md font-semibold">
@@ -124,8 +146,9 @@ export default function SensorDetails() {
 								{sensorData.currentValue}
 							</Text>
 						</View>
+
 						<Ionicons
-							className="-mr-6"
+							className="-mr-1.5"
 							size={50}
 							name={getSensorIcon(sensorData.sensorTypeId)}
 							color="gray"
@@ -144,7 +167,7 @@ export default function SensorDetails() {
 					)}
 				</View>
 
-				<View className="w-[107%]">
+				<View className="mt-4 w-[107%]">
 					<LineChart
 						adjustToWidth
 						data={sensorData.sensorData}
@@ -156,7 +179,9 @@ export default function SensorDetails() {
 						// hideYAxisText
 						thickness={2}
 						curved
+						yAxisTextNumberOfLines={6}
 						yAxisOffset={sensorData.minValue}
+						yAxisLabelWidth={50}
 						color={sensorData.thresholdWarning === null ? "green" : "red"}
 					/>
 				</View>
@@ -190,41 +215,37 @@ export default function SensorDetails() {
 
 					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
 						<View className="flex flex-row justify-between">
-							{/* Valor Mínimo */}
-							<Text className="text-blue-900 font-bold">
-								Mínimo: {sensorData.minPastDay}
-							</Text>
-							{/* Valor Máximo */}
-							<Text className="text-green-900 font-bold">
-								Máximo: {sensorData.maxPastDay}
-							</Text>
+							<Text className="text-blue-900 font-bold">Mínimo</Text>
+							<Text className="text-green-900 font-bold">Máximo</Text>
 						</View>
 
-						{/* Barra de intervalo */}
 						<View className="relative mt-4 h-4 bg-gray-200 rounded-full">
-							{/* Marcador do Mínimo */}
 							<View className="absolute w-4 h-4 bg-blue-500 rounded-full" />
-							{/* Marcador da Média */}
 							<View
 								style={{
 									left: `${((sensorData.avgPastDay - sensorData.minPastDay) / (sensorData.maxPastDay - sensorData.minPastDay)) * 100}%`,
 								}}
 								className="absolute w-4 h-4 bg-gray-500 rounded-full"
 							/>
-							{/* Marcador do Máximo */}
 							<View
 								style={{ left: "96%" }}
 								className="absolute w-4 h-4 bg-green-500 rounded-full"
 							/>
 						</View>
 
-						{/* Mostrar valores na barra */}
 						<View className="flex flex-row justify-between text-xs mt-2">
 							<Text className="text-blue-900">{sensorData.minPastDay}</Text>
 							<Text className="text-gray-500">
 								Média: {sensorData.avgPastDay?.toFixed(2)}
 							</Text>
 							<Text className="text-green-900">{sensorData.maxPastDay}</Text>
+						</View>
+
+						<View className="flex-row items-center mt-4 bg-blue-100 border-l-4 border-blue-500 p-3 rounded-md shadow-sm">
+							<Ionicons name="stats-chart" size={24} color="#1E40AF" />
+							<Text className="ml-2 text-blue-900 font-semibold text-sm">
+								Desvio Padrão: {sensorData.stddevPastDay?.toFixed(2)}
+							</Text>
 						</View>
 					</View>
 
@@ -234,41 +255,36 @@ export default function SensorDetails() {
 
 					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
 						<View className="flex flex-row justify-between">
-							{/* Valor Mínimo */}
-							<Text className="text-blue-900 font-bold">
-								Mínimo: {sensorData.minPastWeek}
-							</Text>
-							{/* Valor Máximo */}
-							<Text className="text-green-900 font-bold">
-								Máximo: {sensorData.maxPastWeek}
-							</Text>
+							<Text className="text-blue-900 font-bold">Mínimo</Text>
+							<Text className="text-green-900 font-bold">Máximo</Text>
 						</View>
 
-						{/* Barra de intervalo */}
 						<View className="relative mt-4 h-4 bg-gray-200 rounded-full">
-							{/* Marcador do Mínimo */}
 							<View className="absolute w-4 h-4 bg-blue-500 rounded-full" />
-							{/* Marcador da Média */}
 							<View
 								style={{
 									left: `${((sensorData.avgPastWeek - sensorData.minPastWeek) / (sensorData.maxPastWeek - sensorData.minPastWeek)) * 100}%`,
 								}}
 								className="absolute w-4 h-4 bg-gray-500 rounded-full"
 							/>
-							{/* Marcador do Máximo */}
 							<View
-								style={{ left: "100%" }}
+								style={{ left: "96%" }}
 								className="absolute w-4 h-4 bg-green-500 rounded-full"
 							/>
 						</View>
 
-						{/* Mostrar valores na barra */}
 						<View className="flex flex-row justify-between text-xs mt-2">
 							<Text className="text-blue-900">{sensorData.minPastWeek}</Text>
 							<Text className="text-gray-500">
 								Média: {sensorData.avgPastWeek?.toFixed(2)}
 							</Text>
 							<Text className="text-green-900">{sensorData.maxPastWeek}</Text>
+						</View>
+						<View className="flex-row items-center mt-4 bg-blue-100 border-l-4 border-blue-500 p-3 rounded-md shadow-sm">
+							<Ionicons name="stats-chart" size={24} color="#1E40AF" />
+							<Text className="ml-2 text-blue-900 font-semibold text-sm">
+								Desvio Padrão: {sensorData.stddevPastWeek?.toFixed(2)}
+							</Text>
 						</View>
 					</View>
 				</View>

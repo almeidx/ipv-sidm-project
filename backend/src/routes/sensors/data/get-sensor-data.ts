@@ -4,6 +4,7 @@ import {
 	getSensorsDataImpl,
 	singleSensorDataSchema,
 } from "#utils/get-sensors-data.ts";
+import { isAuthenticated } from "#middleware/is-authenticated.ts";
 
 const timeframeSchema = z
 	.union([
@@ -23,6 +24,7 @@ export const getSensorData: FastifyPluginAsyncZod = async (app) => {
 	app.get(
 		"/sensors/:sensorId/data",
 		{
+			preHandler: [isAuthenticated],
 			schema: {
 				params: z.object({
 					sensorId: z.string().regex(/^\d+$/),
