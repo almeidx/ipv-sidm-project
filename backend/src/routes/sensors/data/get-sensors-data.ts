@@ -1,11 +1,8 @@
-import {
-	getSensorsDataImpl,
-	singleSensorDataSchema,
-} from "#utils/get-sensors-data.ts";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { SensorOrder } from "../../../utils/sensor-filters.ts";
 import { isAuthenticated } from "#middleware/is-authenticated.ts";
+import { getSensorsDataImpl, singleSensorDataSchema } from "#utils/get-sensors-data.ts";
+import { SensorOrder } from "#utils/sensor-filters.ts";
 
 export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 	app.get(
@@ -30,9 +27,7 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 						.string()
 						.regex(/^\d+(,\d+)*$/)
 						.optional(),
-					threshold: z
-						.union([z.literal("above"), z.literal("below")])
-						.optional(),
+					threshold: z.union([z.literal("above"), z.literal("below")]).optional(),
 				}),
 				response: {
 					200: z.object({
@@ -42,16 +37,7 @@ export const getSensorsData: FastifyPluginAsyncZod = async (app) => {
 			},
 		},
 		async (request) => {
-			const {
-				startDate,
-				endDate,
-				query,
-				sensorTypes,
-				threshold,
-				order,
-				sensors,
-				excludeSensors,
-			} = request.query;
+			const { startDate, endDate, query, sensorTypes, threshold, order, sensors, excludeSensors } = request.query;
 
 			const sensorTypeIds = sensorTypes?.split(",").map(Number);
 			const sensorIds = sensors?.split(",").map(Number);

@@ -1,19 +1,12 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import {
-	type PropsWithChildren,
-	createContext,
-	useContext,
-	useState,
-} from "react";
+import { type PropsWithChildren, createContext, useContext, useState } from "react";
 import { toast } from "sonner-native";
 import { CacheKey } from "../lib/cache";
 import { API_URL } from "../lib/constants";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const AuthContext = createContext<SessionContextData>(
-	null as unknown as SessionContextData,
-);
+const AuthContext = createContext<SessionContextData>(null as unknown as SessionContextData);
 
 export function useSession() {
 	const value = useContext(AuthContext);
@@ -26,9 +19,7 @@ export function useSession() {
 
 export function SessionProvider({ children }: PropsWithChildren) {
 	const router = useRouter();
-	const [token, setToken] = useState<string | null>(() =>
-		SecureStore.getItem(CacheKey.AuthToken),
-	);
+	const [token, setToken] = useState<string | null>(() => SecureStore.getItem(CacheKey.AuthToken));
 
 	async function signIn(email: string, password: string) {
 		try {
@@ -72,11 +63,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 				}
 
 				default: {
-					console.error(
-						"Unknown error occurred",
-						response.status,
-						await response.text(),
-					);
+					console.error("Unknown error occurred", response.status, await response.text());
 					toast.error("Unknown error occurred");
 					break;
 				}
@@ -124,11 +111,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 				}
 
 				default: {
-					console.error(
-						"Unknown error occurred",
-						response.status,
-						await response.text(),
-					);
+					console.error("Unknown error occurred", response.status, await response.text());
 					toast.error("Unknown error occurred");
 					break;
 				}
@@ -146,11 +129,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 		router.push("/sign-in");
 	}
 
-	return (
-		<AuthContext.Provider value={{ signIn, signUp, signOut, token }}>
-			{children}
-		</AuthContext.Provider>
-	);
+	return <AuthContext.Provider value={{ signIn, signUp, signOut, token }}>{children}</AuthContext.Provider>;
 }
 
 interface SessionContextData {

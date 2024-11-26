@@ -28,12 +28,7 @@ export default function SignUp({ goToLogin }: { goToLogin: () => void }) {
 	return (
 		<BasePage centerContent>
 			<View className="flex flex-col gap-4 items-center w-full px-5">
-				<Input
-					placeholder="Nome"
-					textContentType="name"
-					value={name}
-					onChangeText={(text) => setName(text)}
-				/>
+				<Input placeholder="Nome" textContentType="name" value={name} onChangeText={(text) => setName(text)} />
 
 				<Input
 					placeholder="Email"

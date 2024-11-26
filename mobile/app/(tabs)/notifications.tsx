@@ -4,13 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-	ActivityIndicator,
-	Alert,
-	Text,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import type { GetNotificationsResult } from "../../lib/api-types";
@@ -34,45 +28,40 @@ export default function Notifications() {
 	useEffect(() => {
 		async function getNotifications() {
 			try {
-				const { data } = await makeApiRequest<GetNotificationsResult>(
-					"/notifications",
-					{
-						method: "GET",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						failMessage: "Failed to fetch notifications",
+				const { data } = await makeApiRequest<GetNotificationsResult>("/notifications", {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
 					},
-				);
+					failMessage: "Failed to fetch notifications",
+				});
 
 				if (data) {
-					const formattedNotifications = data.notifications.map(
-						(notification) => {
-							let message = "";
+					const formattedNotifications = data.notifications.map((notification) => {
+						let message = "";
 
-							switch (notification.thresholdSurpassed) {
-								case 0:
-									message = `${notification.sensor.name} voltou ao normal.`;
-									break;
-								case 1:
-									message = `${notification.sensor.name} passou o threshold de baixo.`;
-									break;
-								case 2:
-									message = `${notification.sensor.name} passou o threshold de cima.`;
-									break;
-								default:
-									message = "Status desconhecido";
-							}
+						switch (notification.thresholdSurpassed) {
+							case 0:
+								message = `${notification.sensor.name} voltou ao normal.`;
+								break;
+							case 1:
+								message = `${notification.sensor.name} passou o threshold de baixo.`;
+								break;
+							case 2:
+								message = `${notification.sensor.name} passou o threshold de cima.`;
+								break;
+							default:
+								message = "Status desconhecido";
+						}
 
-							const formattedDate = dayjs(notification.createdAt).fromNow();
+						const formattedDate = dayjs(notification.createdAt).fromNow();
 
-							return {
-								...notification,
-								message,
-								formattedDate,
-							};
-						},
-					);
+						return {
+							...notification,
+							message,
+							formattedDate,
+						};
+					});
 
 					setNotifications(formattedNotifications);
 				}
@@ -93,9 +82,7 @@ export default function Notifications() {
 				failMessage: "Falha ao marcar a notificação como lida",
 			});
 
-			setNotifications((prevNotifications) =>
-				prevNotifications.filter((notification) => notification.id !== id),
-			);
+			setNotifications((prevNotifications) => prevNotifications.filter((notification) => notification.id !== id));
 			toast.info("Notificação marcada como lida");
 		} catch (error) {
 			console.error("Erro ao marcar notificação como lida:", error);
@@ -120,21 +107,17 @@ export default function Notifications() {
 	}
 
 	function confirmClearNotifications() {
-		Alert.alert(
-			"Confirmar",
-			"Tem a certeza de que deseja remover todas as notificações?",
-			[
-				{
-					text: "Cancelar",
-					style: "cancel",
-				},
-				{
-					text: "Remover",
-					style: "destructive",
-					onPress: clearAllNotifications,
-				},
-			],
-		);
+		Alert.alert("Confirmar", "Tem a certeza de que deseja remover todas as notificações?", [
+			{
+				text: "Cancelar",
+				style: "cancel",
+			},
+			{
+				text: "Remover",
+				style: "destructive",
+				onPress: clearAllNotifications,
+			},
+		]);
 	}
 
 	if (!notifications.length) {
@@ -171,53 +154,33 @@ export default function Notifications() {
 				{isLoading ? (
 					<ActivityIndicator size="large" color="blue" />
 				) : (
-					notifications.map(
-						({
-							id,
-							sensor,
-							message,
-							value,
-							formattedDate,
-							thresholdSurpassed,
-						}) => (
-							<View
-								key={id}
-								className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300"
-							>
-								<View className="flex flex-row items-center w-full">
-									<View className="size-10 flex justify-center items-center">
-										<Ionicons
-											name={getSensorIcon(sensor.sensorType.id)}
-											size={24}
-											color="grey"
-										/>
-									</View>
-
-									<View className="ml-3">
-										<Text className="font-semibold">{message}</Text>
-
-										<View className="flex flex-row gap-1 items-center">
-											<Text className="text-gray-600">
-												Valor {value} {sensor.sensorType.unit}
-											</Text>
-											{thresholdSurpassed === 1 && (
-												<Ionicons name="arrow-down" size={15} color="red" />
-											)}
-											{thresholdSurpassed === 2 && (
-												<Ionicons name="arrow-up" size={18} color="red" />
-											)}
-										</View>
-
-										<Text className="text-gray-500">{formattedDate}</Text>
-									</View>
+					notifications.map(({ id, sensor, message, value, formattedDate, thresholdSurpassed }) => (
+						<View key={id} className="flex flex-row justify-between items-center pr-4 py-4 border-b border-gray-300">
+							<View className="flex flex-row items-center w-full">
+								<View className="size-10 flex justify-center items-center">
+									<Ionicons name={getSensorIcon(sensor.sensorType.id)} size={24} color="grey" />
 								</View>
 
-								<TouchableOpacity onPress={() => markAsRead(id)}>
-									<Ionicons name="checkmark" size={22} color="grey" />
-								</TouchableOpacity>
+								<View className="ml-3">
+									<Text className="font-semibold">{message}</Text>
+
+									<View className="flex flex-row gap-1 items-center">
+										<Text className="text-gray-600">
+											Valor {value} {sensor.sensorType.unit}
+										</Text>
+										{thresholdSurpassed === 1 && <Ionicons name="arrow-down" size={15} color="red" />}
+										{thresholdSurpassed === 2 && <Ionicons name="arrow-up" size={18} color="red" />}
+									</View>
+
+									<Text className="text-gray-500">{formattedDate}</Text>
+								</View>
 							</View>
-						),
-					)
+
+							<TouchableOpacity onPress={() => markAsRead(id)}>
+								<Ionicons name="checkmark" size={22} color="grey" />
+							</TouchableOpacity>
+						</View>
+					))
 				)}
 			</View>
 		</BasePage>

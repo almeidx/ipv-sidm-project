@@ -1,8 +1,9 @@
 {
 	"expo": {
-		"name": "mobile",
-		"slug": "mobile",
+		"name": "Dataflow",
+		"slug": "dataflow",
 		"version": "1.0.0",
+		"scheme": "dataflow",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "light",
@@ -19,11 +20,38 @@
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			},
-			"scheme": "dev.almeidx.sidm"
+			"package": "dev.almeidx.sidm"
 		},
 		"web": {
 			"favicon": "./assets/images/favicon.png"
 		},
-		"plugins": ["expo-router", "expo-secure-store"]
+		"plugins": [
+			"expo-router",
+			"expo-secure-store",
+			[
+				"@bam.tech/react-native-app-security",
+				{
+					"sslPinning": {
+						"sidm-api.almeidx.dev": ["HOaurFD2gUCUFKV2NxwkpxzQB9RYEqm7EUpB5OYmDXQ="]
+					},
+					"preventRecentScreenshots": {
+						"ios": {
+							"enabled": true
+						},
+						"android": {
+							"enabled": true
+						}
+					}
+				}
+			]
+		],
+		"extra": {
+			"router": {
+				"origin": false
+			},
+			"eas": {
+				"projectId": "01994494-9dbc-4490-855c-2e3ce6abf39a"
+			}
+		}
 	}
 }

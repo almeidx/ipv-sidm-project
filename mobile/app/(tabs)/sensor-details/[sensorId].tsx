@@ -2,13 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGlobalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-	ActivityIndicator,
-	ScrollView,
-	Text,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { toast } from "sonner-native";
 import { BasePage } from "../../../components/base-page";
@@ -21,14 +15,11 @@ const timeframes = ["1D", "1W", "1M", "3M", "6M", "1Y", "MAX"] as const;
 
 export default function SensorDetails() {
 	const { sensorId } = useGlobalSearchParams<{ sensorId: string }>();
-	const [sensorData, setSensorData] = useState<
-		GetSensorDataResult["sensor"] | null
-	>(null);
+	const [sensorData, setSensorData] = useState<GetSensorDataResult["sensor"] | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	const [isFavorite, setIsFavorite] = useState<boolean>(false);
-	const [selectedTimeframe, setSelectedTimeframe] =
-		useState<(typeof timeframes)[number]>("1D");
+	const [selectedTimeframe, setSelectedTimeframe] = useState<(typeof timeframes)[number]>("1D");
 
 	useEffect(() => {
 		async function fetchSensorsData() {
@@ -40,14 +31,11 @@ export default function SensorDetails() {
 			setIsLoading(true);
 
 			try {
-				const { data } = await makeApiRequest<GetSensorDataResult>(
-					`/sensors/${sensorId}/data`,
-					{
-						query: {
-							timeframe: selectedTimeframe,
-						},
+				const { data } = await makeApiRequest<GetSensorDataResult>(`/sensors/${sensorId}/data`, {
+					query: {
+						timeframe: selectedTimeframe,
 					},
-				);
+				});
 
 				if (data) {
 					setSensorData(data.sensor);
@@ -78,18 +66,14 @@ export default function SensorDetails() {
 		const newFavoriteStatus = !isFavorite;
 		setIsFavorite(newFavoriteStatus);
 
-		const favouritesList = await AsyncStorage.getItem(
-			CacheKey.FavouriteSensors,
-		);
+		const favouritesList = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
 
 		if (newFavoriteStatus) {
 			toast.success("Sensor adicionado aos favoritos!");
 
 			await AsyncStorage.setItem(
 				CacheKey.FavouriteSensors,
-				JSON.stringify(
-					favouritesList ? [...favouritesList, sensorId] : [sensorId],
-				),
+				JSON.stringify(favouritesList ? [...favouritesList, sensorId] : [sensorId]),
 			);
 		} else {
 			toast.success("Sensor removido dos favoritos!");
@@ -97,11 +81,7 @@ export default function SensorDetails() {
 			if (favouritesList) {
 				await AsyncStorage.setItem(
 					CacheKey.FavouriteSensors,
-					JSON.stringify(
-						JSON.parse(favouritesList).filter(
-							(item: string) => item !== sensorId,
-						),
-					),
+					JSON.stringify(JSON.parse(favouritesList).filter((item: string) => item !== sensorId)),
 				);
 			}
 		}
@@ -127,11 +107,7 @@ export default function SensorDetails() {
 		<BasePage
 			rightSide={
 				<TouchableOpacity onPress={handleFavoriteToggle}>
-					<Ionicons
-						size={32}
-						name={isFavorite ? "star" : "star-outline"}
-						color={isFavorite ? "#a18b00" : "gray"}
-					/>
+					<Ionicons size={32} name={isFavorite ? "star" : "star-outline"} color={isFavorite ? "#a18b00" : "gray"} />
 				</TouchableOpacity>
 			}
 		>
@@ -139,29 +115,17 @@ export default function SensorDetails() {
 				<View>
 					<View className="flex flex-row justify-between items-center">
 						<View className="flex gap-2">
-							<Text className="text-gray-700 text-md font-semibold">
-								{sensorData.name}
-							</Text>
-							<Text className="text-gray text-4xl font-extrabold">
-								{sensorData.currentValue}
-							</Text>
+							<Text className="text-gray-700 text-md font-semibold">{sensorData.name}</Text>
+							<Text className="text-gray text-4xl font-extrabold">{sensorData.currentValue}</Text>
 						</View>
 
-						<Ionicons
-							className="-mr-1.5"
-							size={50}
-							name={getSensorIcon(sensorData.sensorTypeId)}
-							color="gray"
-						/>
+						<Ionicons className="-mr-1.5" size={50} name={getSensorIcon(sensorData.sensorTypeId)} color="gray" />
 					</View>
 
 					{sensorData.thresholdWarning && (
 						<View className="mt-3 bg-red-100 border-l-4 border-red-500 p-4 rounded-md">
 							<Text className="text-red-600 text-sm">
-								Aviso:{" "}
-								{sensorData.thresholdWarning === "above"
-									? "Acima do limite"
-									: "Abaixo do limite"}
+								Aviso: {sensorData.thresholdWarning === "above" ? "Acima do limite" : "Abaixo do limite"}
 							</Text>
 						</View>
 					)}
@@ -190,18 +154,10 @@ export default function SensorDetails() {
 					{timeframes.map((timeframe) => (
 						<TouchableOpacity
 							key={timeframe}
-							className={`px-3 py-1.5 rounded-md ${
-								selectedTimeframe === timeframe ? "bg-slate-600" : "bg-gray-400"
-							}`}
+							className={`px-3 py-1.5 rounded-md ${selectedTimeframe === timeframe ? "bg-slate-600" : "bg-gray-400"}`}
 							onPress={() => setSelectedTimeframe(timeframe)}
 						>
-							<Text
-								className={`text-white ${
-									selectedTimeframe === timeframe
-										? "text-white"
-										: "text-gray-700"
-								}`}
-							>
+							<Text className={`text-white ${selectedTimeframe === timeframe ? "text-white" : "text-gray-700"}`}>
 								{timeframe}
 							</Text>
 						</TouchableOpacity>
@@ -209,9 +165,7 @@ export default function SensorDetails() {
 				</View>
 
 				<View>
-					<Text className="text-gray-700 text-md font-semibold mt-4">
-						Intervalos de valores no último dia
-					</Text>
+					<Text className="text-gray-700 text-md font-semibold mt-4">Intervalos de valores no último dia</Text>
 
 					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
 						<View className="flex flex-row justify-between">
@@ -227,17 +181,12 @@ export default function SensorDetails() {
 								}}
 								className="absolute w-4 h-4 bg-gray-500 rounded-full"
 							/>
-							<View
-								style={{ left: "96%" }}
-								className="absolute w-4 h-4 bg-green-500 rounded-full"
-							/>
+							<View style={{ left: "96%" }} className="absolute w-4 h-4 bg-green-500 rounded-full" />
 						</View>
 
 						<View className="flex flex-row justify-between text-xs mt-2">
 							<Text className="text-blue-900">{sensorData.minPastDay}</Text>
-							<Text className="text-gray-500">
-								Média: {sensorData.avgPastDay?.toFixed(2)}
-							</Text>
+							<Text className="text-gray-500">Média: {sensorData.avgPastDay?.toFixed(2)}</Text>
 							<Text className="text-green-900">{sensorData.maxPastDay}</Text>
 						</View>
 
@@ -249,9 +198,7 @@ export default function SensorDetails() {
 						</View>
 					</View>
 
-					<Text className="text-gray-700 text-md font-semibold mt-6">
-						Intervalos de valores na última semana
-					</Text>
+					<Text className="text-gray-700 text-md font-semibold mt-6">Intervalos de valores na última semana</Text>
 
 					<View className="flex flex-col mt-2 bg-white p-4 rounded-md shadow">
 						<View className="flex flex-row justify-between">
@@ -267,17 +214,12 @@ export default function SensorDetails() {
 								}}
 								className="absolute w-4 h-4 bg-gray-500 rounded-full"
 							/>
-							<View
-								style={{ left: "96%" }}
-								className="absolute w-4 h-4 bg-green-500 rounded-full"
-							/>
+							<View style={{ left: "96%" }} className="absolute w-4 h-4 bg-green-500 rounded-full" />
 						</View>
 
 						<View className="flex flex-row justify-between text-xs mt-2">
 							<Text className="text-blue-900">{sensorData.minPastWeek}</Text>
-							<Text className="text-gray-500">
-								Média: {sensorData.avgPastWeek?.toFixed(2)}
-							</Text>
+							<Text className="text-gray-500">Média: {sensorData.avgPastWeek?.toFixed(2)}</Text>
 							<Text className="text-green-900">{sensorData.maxPastWeek}</Text>
 						</View>
 						<View className="flex-row items-center mt-4 bg-blue-100 border-l-4 border-blue-500 p-3 rounded-md shadow-sm">

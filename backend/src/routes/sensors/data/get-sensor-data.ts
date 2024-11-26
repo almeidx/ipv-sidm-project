@@ -1,10 +1,7 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import {
-	getSensorsDataImpl,
-	singleSensorDataSchema,
-} from "#utils/get-sensors-data.ts";
 import { isAuthenticated } from "#middleware/is-authenticated.ts";
+import { getSensorsDataImpl, singleSensorDataSchema } from "#utils/get-sensors-data.ts";
 
 const timeframeSchema = z
 	.union([

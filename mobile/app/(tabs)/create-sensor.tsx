@@ -1,19 +1,17 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import DropdownSelect from "react-native-input-select";
 import { toast } from "sonner-native";
 import { BasePage } from "../../components/base-page";
 import { Input } from "../../components/input";
 import type { GetSensorTypesResult } from "../../lib/api-types";
 import { makeApiRequest } from "../../lib/make-api-request";
-import DropdownSelect from "react-native-input-select";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function CreateSensor() {
 	const [name, setName] = useState("");
 	const [selectedValue, setSelectedValue] = useState("1");
-	const [sensorTypes, setSensorTypes] = useState<
-		GetSensorTypesResult["sensorTypes"]
-	>([]);
+	const [sensorTypes, setSensorTypes] = useState<GetSensorTypesResult["sensorTypes"]>([]);
 	const [isLoading, setLoading] = useState(true);
 	const [maxThreshold, setMaxThreshold] = useState("");
 	const [minThreshold, setMinThreshold] = useState("");
@@ -42,22 +40,19 @@ export default function CreateSensor() {
 		}
 
 		try {
-			const { data, response } = await makeApiRequest<{ id: string }>(
-				"/sensors",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						name,
-						sensorType: Number(selectedValue),
-						maxThreshold: maxThresholdNumber,
-						minThreshold: minThresholdNumber,
-					}),
-					failMessage: "An error occurred. Please try again later",
+			const { data, response } = await makeApiRequest<{ id: string }>("/sensors", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
 				},
-			);
+				body: JSON.stringify({
+					name,
+					sensorType: Number(selectedValue),
+					maxThreshold: maxThresholdNumber,
+					minThreshold: minThresholdNumber,
+				}),
+				failMessage: "An error occurred. Please try again later",
+			});
 
 			switch (response.status) {
 				case 201: {
@@ -137,19 +132,9 @@ export default function CreateSensor() {
 					/>
 				</View>
 
-				<Input
-					placeholder="Limite Minimo"
-					value={minThreshold}
-					onChangeText={setMinThreshold}
-					keyboardType="numeric"
-				/>
+				<Input placeholder="Limite Minimo" value={minThreshold} onChangeText={setMinThreshold} keyboardType="numeric" />
 
-				<Input
-					placeholder="Limite Máximo"
-					value={maxThreshold}
-					onChangeText={setMaxThreshold}
-					keyboardType="numeric"
-				/>
+				<Input placeholder="Limite Máximo" value={maxThreshold} onChangeText={setMaxThreshold} keyboardType="numeric" />
 
 				<TouchableOpacity
 					className="flex flex-row gap-3 items-center justify-center bg-zinc-300 rounded-3xl w-11/12 h-14"

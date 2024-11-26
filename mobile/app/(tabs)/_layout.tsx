@@ -44,9 +44,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="notifications"
 				options={{
-					tabBarIcon: ({ color }) => (
-						<TabBarIcon name="notifications" color={color} />
-					),
+					tabBarIcon: ({ color }) => <TabBarIcon name="notifications" color={color} />,
 				}}
 			/>
 			<Tabs.Screen

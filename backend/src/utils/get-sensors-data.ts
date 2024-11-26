@@ -41,9 +41,7 @@ export async function getSensorsDataImpl({
 	sensorIds,
 	excludeSensorIds,
 }: GetSensorsDataOptions) {
-	const startDate = rawStartDate
-		? dayjs(rawStartDate)
-		: dayjs().subtract(1, "week");
+	const startDate = rawStartDate ? dayjs(rawStartDate) : dayjs().subtract(1, "week");
 	const endDate = rawEndDate ? dayjs(rawEndDate) : undefined;
 
 	const conditions = [];
@@ -70,8 +68,7 @@ export async function getSensorsDataImpl({
 		conditions.push(`sd.created_at <= '${endDate.toISOString()}'`);
 	}
 
-	const whereClause =
-		conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+	const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
 	const orderByConditions: string[] = [];
 	switch (order) {

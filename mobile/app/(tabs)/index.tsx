@@ -19,9 +19,7 @@ const FETCH_SENSORS_DATA_INTERVAL = 3 * 1_000;
 export default function Home() {
 	const router = useRouter();
 
-	const [sensorsData, setSensorsData] = useState<
-		GetSensorsDataResult["sensors"]
-	>([]);
+	const [sensorsData, setSensorsData] = useState<GetSensorsDataResult["sensors"]>([]);
 	const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
 
 	const [search, setSearch] = useState("");
@@ -59,23 +57,19 @@ export default function Home() {
 				query.threshold = threshold;
 			}
 
-			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(
-				async ({ data }) => {
-					if (data) {
-						const sensorIds = JSON.parse(
-							(await AsyncStorage.getItem(CacheKey.FavouriteSensors)) || "[]",
-						);
-						const sensorsWithFavorites = data.sensors.map((sensor) => ({
-							...sensor,
-							isFavorite: sensorIds.includes(sensor.id),
-						}));
+			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(async ({ data }) => {
+				if (data) {
+					const sensorIds = JSON.parse((await AsyncStorage.getItem(CacheKey.FavouriteSensors)) || "[]");
+					const sensorsWithFavorites = data.sensors.map((sensor) => ({
+						...sensor,
+						isFavorite: sensorIds.includes(sensor.id),
+					}));
 
-						setSensorsData(sensorsWithFavorites);
-					}
+					setSensorsData(sensorsWithFavorites);
+				}
 
-					setIsInitialLoading(false);
-				},
-			);
+				setIsInitialLoading(false);
+			});
 		}
 
 		loadFavorites();
@@ -100,22 +94,10 @@ export default function Home() {
 		>
 			<View className="flex flex-row items-center gap-4 w-full">
 				<View className="w-[88%]">
-					<Input
-						placeholder="Pesquisar sensor"
-						value={search}
-						onChangeText={(text) => setSearch(text)}
-					/>
+					<Input placeholder="Pesquisar sensor" value={search} onChangeText={(text) => setSearch(text)} />
 				</View>
 
-				<Popover
-					from={
-						<Ionicons
-							size={40}
-							name="reorder-four"
-							style={{ marginLeft: -10 }}
-						/>
-					}
-				>
+				<Popover from={<Ionicons size={40} name="reorder-four" style={{ marginLeft: -10 }} />}>
 					<SensorsFilterPopover />
 				</Popover>
 			</View>
@@ -125,18 +107,11 @@ export default function Home() {
 					<ActivityIndicator size="large" color="blue" />
 				) : sensorsData.length ? (
 					sensorsData.map((sensor) => (
-						<TouchableOpacity
-							key={sensor.id}
-							onPress={() => handleSensorClick(sensor.id)}
-						>
+						<TouchableOpacity key={sensor.id} onPress={() => handleSensorClick(sensor.id)}>
 							<View className="flex flex-col gap-4 rounded-lg">
 								<View className="flex flex-row items-center">
 									<View className="flex justify-center items-center mr-3">
-										<Ionicons
-											size={25}
-											name={getSensorIcon(sensor.sensorTypeId)}
-											color="grey"
-										/>
+										<Ionicons size={25} name={getSensorIcon(sensor.sensorTypeId)} color="grey" />
 									</View>
 
 									<View className="flex flex-col gap-1">
@@ -144,12 +119,7 @@ export default function Home() {
 									</View>
 
 									{favoriteSensors.includes(sensor.id.toString()) && (
-										<Ionicons
-											size={20}
-											name="star"
-											color="#a18b00"
-											style={{ marginLeft: 8 }}
-										/>
+										<Ionicons size={20} name="star" color="#a18b00" style={{ marginLeft: 8 }} />
 									)}
 
 									<View className="ml-auto">

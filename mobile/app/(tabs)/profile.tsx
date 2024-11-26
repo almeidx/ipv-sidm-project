@@ -24,13 +24,10 @@ export default function Profile() {
 	useEffect(() => {
 		async function fetchUser() {
 			try {
-				const { data } = await makeApiRequest<GetCurrentUserResult>(
-					"/users/@me",
-					{
-						method: "GET",
-						failMessage: "Falha ao buscar dados do utilizador",
-					},
-				);
+				const { data } = await makeApiRequest<GetCurrentUserResult>("/users/@me", {
+					method: "GET",
+					failMessage: "Falha ao buscar dados do utilizador",
+				});
 
 				if (!data) {
 					await signOut();
@@ -72,34 +69,30 @@ export default function Profile() {
 	}
 
 	async function handleDeleteAccount() {
-		Alert.alert(
-			"Confirmar Apagar Conta",
-			"Tem a certeza que deseja apagar a sua conta? Esta ação é irreversível.",
-			[
-				{
-					text: "Cancelar",
-					style: "cancel",
-				},
-				{
-					text: "Apagar",
-					style: "destructive",
-					onPress: async () => {
-						try {
-							await makeApiRequest("/users/@me", {
-								method: "DELETE",
-								failMessage: "Falha ao apagar conta",
-							});
+		Alert.alert("Confirmar Apagar Conta", "Tem a certeza que deseja apagar a sua conta? Esta ação é irreversível.", [
+			{
+				text: "Cancelar",
+				style: "cancel",
+			},
+			{
+				text: "Apagar",
+				style: "destructive",
+				onPress: async () => {
+					try {
+						await makeApiRequest("/users/@me", {
+							method: "DELETE",
+							failMessage: "Falha ao apagar conta",
+						});
 
-							toast.success("Conta apagada com sucesso");
-							signOut();
-						} catch (error) {
-							console.error("Erro ao apagar conta:", error);
-							toast.error("Erro ao apagar conta. Por favor, tente novamente.");
-						}
-					},
+						toast.success("Conta apagada com sucesso");
+						signOut();
+					} catch (error) {
+						console.error("Erro ao apagar conta:", error);
+						toast.error("Erro ao apagar conta. Por favor, tente novamente.");
+					}
 				},
-			],
-		);
+			},
+		]);
 	}
 
 	async function handleSaveChanges() {
@@ -162,39 +155,21 @@ export default function Profile() {
 				<View className="flex-1 justify-evenly">
 					<View className="mb-4">
 						<Text className="font-bold text-lg">Nome</Text>
-						<Input
-							value={name}
-							onChangeText={handleNameChange}
-							placeholder="Nome"
-						/>
+						<Input value={name} onChangeText={handleNameChange} placeholder="Nome" />
 					</View>
 
 					<View>
 						<Text className="font-bold text-lg">Email</Text>
-						<Input
-							value={email}
-							onChangeText={handleEmailChange}
-							placeholder="Email"
-						/>
+						<Input value={email} onChangeText={handleEmailChange} placeholder="Email" />
 					</View>
 				</View>
 
 				<View className="gap-5">
-					{hasChanges && (
-						<Button
-							title="Salvar alterações"
-							variant="outline"
-							onPress={handleSaveChanges}
-						/>
-					)}
+					{hasChanges && <Button title="Salvar alterações" variant="outline" onPress={handleSaveChanges} />}
 
 					<Button title="Logout" onPress={handleLogout} />
 
-					<Button
-						title="Apagar conta"
-						variant="danger"
-						onPress={handleDeleteAccount}
-					/>
+					<Button title="Apagar conta" variant="danger" onPress={handleDeleteAccount} />
 				</View>
 			</View>
 		</BasePage>

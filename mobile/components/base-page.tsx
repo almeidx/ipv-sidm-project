@@ -9,12 +9,7 @@ interface BasePageProps {
 	centerContent?: boolean;
 }
 
-export function BasePage({
-	children,
-	title,
-	rightSide,
-	centerContent,
-}: PropsWithChildren<BasePageProps>) {
+export function BasePage({ children, title, rightSide, centerContent }: PropsWithChildren<BasePageProps>) {
 	const router = useRouter();
 	const pathname = usePathname();
 
@@ -36,15 +31,9 @@ export function BasePage({
 					: undefined),
 			}}
 		>
-			<View
-				className="flex flex-row justify-between items-center"
-				style={{ paddingHorizontal: 20 }}
-			>
+			<View className="flex flex-row justify-between items-center" style={{ paddingHorizontal: 20 }}>
 				<TouchableOpacity onPress={handleLogoPress} activeOpacity={1}>
-					<Image
-						source={require("../assets/images/logo-black.png")}
-						style={{ width: 160, height: 160 }}
-					/>
+					<Image source={require("../assets/images/logo-black.png")} style={{ width: 160, height: 160 }} />
 				</TouchableOpacity>
 
 				{rightSide}
@@ -64,10 +53,7 @@ export function BasePage({
 			{centerContent ? (
 				children
 			) : (
-				<View
-					className="flex flex-col flex-1 gap-4"
-					style={{ paddingHorizontal: 20, marginTop: -50 }}
-				>
+				<View className="flex flex-col flex-1 gap-4" style={{ paddingHorizontal: 20, marginTop: -50 }}>
 					{children}
 				</View>
 			)}

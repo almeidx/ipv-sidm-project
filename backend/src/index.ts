@@ -21,12 +21,12 @@ import { getSensorData } from "#routes/sensors/data/get-sensor-data.ts";
 import { getSensorsData } from "#routes/sensors/data/get-sensors-data.ts";
 import { getSensors } from "#routes/sensors/get-sensors.ts";
 import { getSensorTypes } from "#routes/sensors/types/get-sensor-types.ts";
+import { deleteAccount } from "#routes/users/delete-account.ts";
 import { editCurrentUser } from "#routes/users/edit-current-user.ts";
 import { getCurrentUser } from "#routes/users/get-current-user.ts";
 import { login } from "#routes/users/login.ts";
 import { signUp } from "#routes/users/sign-up.ts";
 import { webSocketRoute } from "#routes/ws.ts";
-import { deleteAccount } from "#routes/users/delete-account.ts";
 
 declare module "@fastify/jwt" {
 	export interface FastifyJWT {
@@ -59,9 +59,7 @@ app.setErrorHandler((error, request, reply) => {
 		}
 
 		if (error.code === "FST_JWT_AUTHORIZATION_TOKEN_INVALID") {
-			reply
-				.header("X-Auth-Error", "malformed")
-				.send({ message: "Unauthorized" });
+			reply.header("X-Auth-Error", "malformed").send({ message: "Unauthorized" });
 			return;
 		}
 
@@ -113,13 +111,7 @@ app.setErrorHandler((err, req, reply) => {
 });
 
 app.addHook("onResponse", (request, reply, done) => {
-	console.info(
-		"Request completed",
-		request.method,
-		request.url,
-		reply.statusCode,
-		prettyMs(reply.elapsedTime),
-	);
+	console.info("Request completed", request.method, request.url, reply.statusCode, prettyMs(reply.elapsedTime));
 	done();
 });
 

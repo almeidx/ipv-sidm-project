@@ -26,10 +26,7 @@ export async function findOrCreate<Data>(
 		const newValue = await fn();
 
 		const expirationTime = Date.now() + ttlSeconds * 1_000;
-		await AsyncStorage.setItem(
-			key,
-			JSON.stringify({ value: newValue, expirationTime }),
-		);
+		await AsyncStorage.setItem(key, JSON.stringify({ value: newValue, expirationTime }));
 
 		return newValue;
 	} catch (error) {

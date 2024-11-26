@@ -18,12 +18,7 @@ export default function Login({ goToSignUp }: { goToSignUp: () => void }) {
 	return (
 		<BasePage centerContent>
 			<View className="flex-1 justify-center items-center w-full gap-6 px-5 min-h-96">
-				<Input
-					placeholder="Email"
-					textContentType="emailAddress"
-					value={email}
-					onChangeText={setEmail}
-				/>
+				<Input placeholder="Email" textContentType="emailAddress" value={email} onChangeText={setEmail} />
 
 				<Input
 					placeholder="Password"
