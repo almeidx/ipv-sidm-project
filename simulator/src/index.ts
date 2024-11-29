@@ -4,16 +4,16 @@ import WebSocket from "ws";
 import { getDataset } from "./utils/get-dataset.ts";
 import { WebSocketMessageType } from "./utils/websocket-message-types.ts";
 
-//assert(process.env.API_PORT, "API_PORT is required");
+assert(process.env.API_HOST, "API_HOST is required");
 assert(process.env.SENSOR_ID, "SENSOR_ID is required");
 assert(process.env.SENSOR_TYPE_ID, "SENSOR_TYPE_ID is required");
 assert(process.env.SENSOR_TYPE_INDEX, "SENSOR_TYPE_INDEX is required");
 
+const apiHost = process.env.API_HOST;
 const sensorId = Number.parseInt(process.env.SENSOR_ID, 10);
 const sensorTypeId = Number.parseInt(process.env.SENSOR_TYPE_ID, 10);
 const sensorTypeIndex = Number.parseInt(process.env.SENSOR_TYPE_INDEX, 10);
 
-const port = Number.parseInt(process.env.API_PORT, 10);
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
@@ -28,7 +28,7 @@ let pingInterval: NodeJS.Timeout | null = null;
 function connect() {
 	cleanup();
 
-	ws = new WebSocket(`wss://sidm-api.almeidx.dev/ws`);
+	ws = new WebSocket(`wss://${apiHost}/ws`);
 
 	ws.on("error", (error) => {
 		console.error("WebSocket error:", error);
@@ -44,8 +44,9 @@ function connect() {
 				sensorId,
 			},
 		};
+
 		console.log("Sending identify message:", identifyMessage);
-		// biome-ignore lint/style/noNonNullAssertion:
+
 		ws!.send(JSON.stringify(identifyMessage), (error) => {
 			console.error("Failed to send identify message:", error);
 		});
@@ -96,14 +97,17 @@ function connect() {
 			console.log(
 				`Reconnecting in ${RECONNECT_DELAY}ms... (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`,
 			);
+
 			setTimeout(() => {
 				reconnectAttempts++;
 				connect();
 			}, RECONNECT_DELAY);
-		} else {
-			console.error("Max reconnection attempts reached");
-			process.exit(1);
+
+			return;
 		}
+
+		console.error("Max reconnection attempts reached");
+		process.exit(1);
 	});
 }
 
@@ -161,14 +165,17 @@ async function setupIntervals() {
 
 function cleanup() {
 	console.log("Cleaning up resources...");
+
 	if (dataInterval) {
 		clearInterval(dataInterval);
 		dataInterval = null;
 	}
+
 	if (pingInterval) {
 		clearInterval(pingInterval);
 		pingInterval = null;
 	}
+
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		try {
 			ws.close();

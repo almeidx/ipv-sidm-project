@@ -39,10 +39,9 @@ export function SensorsFilterPopover() {
 				CacheKey.SensorTypes,
 				async () => {
 					const { data } = await makeApiRequest<GetSensorTypesResult>("/sensors/types");
-					// biome-ignore lint/style/noNonNullAssertion:
 					return data!.sensorTypes;
 				},
-				30 * 60,
+				30 * 60, // 30 minutes
 			);
 
 			setSensorTypesOptions(sensorTypesData);
@@ -56,9 +55,10 @@ export function SensorsFilterPopover() {
 
 		if (wasSelected) {
 			setSensorTypes((prev) => prev.filter((id) => id !== sensorType.id));
-		} else {
-			setSensorTypes((prev) => [...prev, sensorType.id]);
+			return;
 		}
+
+		setSensorTypes((prev) => [...prev, sensorType.id]);
 	}
 
 	return (

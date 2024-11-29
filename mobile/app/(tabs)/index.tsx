@@ -10,7 +10,7 @@ import { Input } from "../../components/input";
 import { SensorsFilterPopover } from "../../components/sensors-filter-popover";
 import { useSensorFilters } from "../../contexts/sensor-filters-context";
 import type { GetSensorsDataResult } from "../../lib/api-types";
-import { CacheKey } from "../../lib/cache";
+import { CacheKey, findOrCreate } from "../../lib/cache";
 import { getSensorIcon } from "../../lib/get-sensor-icon";
 import { makeApiRequest } from "../../lib/make-api-request";
 
@@ -34,48 +34,60 @@ export default function Home() {
 			}
 		}
 
-		async function fetchSensorsData() {
-			const pastHour = new Date();
-			pastHour.setHours(pastHour.getHours() - 1);
+		async function getData() {
+			const sensorTypesData = await findOrCreate(
+				CacheKey.SensorsData,
+				async function fetchSensorsData() {
+					const pastHour = new Date();
+					pastHour.setHours(pastHour.getHours() - 1);
 
-			const query: Record<string, string> = {
-				startDate: pastHour.toISOString(),
-				query: search,
-				order,
-				sensorTypes: sensorTypes.join(","),
-			};
+					const query: Record<string, string> = {
+						startDate: pastHour.toISOString(),
+						query: search,
+						order,
+						sensorTypes: sensorTypes.join(","),
+					};
 
-			if (favourites !== null) {
-				const sensorIds = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
-				if (sensorIds) {
-					const key = favourites ? "sensors" : "excludeSensors";
-					query[key] = JSON.parse(sensorIds).join(",");
-				}
-			}
+					if (favourites !== null) {
+						const sensorIds = await AsyncStorage.getItem(CacheKey.FavouriteSensors);
+						if (sensorIds) {
+							const key = favourites ? "sensors" : "excludeSensors";
+							query[key] = JSON.parse(sensorIds).join(",");
+						}
+					}
 
-			if (threshold) {
-				query.threshold = threshold;
-			}
+					if (threshold) {
+						query.threshold = threshold;
+					}
 
-			makeApiRequest<GetSensorsDataResult>("/sensors/data", { query }).then(async ({ data }) => {
-				if (data) {
-					const sensorIds = JSON.parse((await AsyncStorage.getItem(CacheKey.FavouriteSensors)) || "[]");
-					const sensorsWithFavorites = data.sensors.map((sensor) => ({
-						...sensor,
-						isFavorite: sensorIds.includes(sensor.id),
-					}));
+					const { data } = await makeApiRequest<GetSensorsDataResult>("/sensors/data", { query });
 
-					setSensorsData(sensorsWithFavorites);
-				}
+					if (data) {
+						const sensorIds = JSON.parse((await AsyncStorage.getItem(CacheKey.FavouriteSensors)) || "[]");
 
+						const sensorsWithFavorites = data.sensors.map((sensor) => ({
+							...sensor,
+							isFavorite: sensorIds.includes(sensor.id),
+						}));
+
+						return sensorsWithFavorites;
+					}
+
+					return null;
+				},
+				1,
+			);
+
+			if (sensorTypesData) {
+				setSensorsData(sensorTypesData);
 				setIsInitialLoading(false);
-			});
+			}
 		}
 
 		loadFavorites();
-		fetchSensorsData();
+		getData();
 
-		const interval = setInterval(fetchSensorsData, FETCH_SENSORS_DATA_INTERVAL);
+		const interval = setInterval(getData, FETCH_SENSORS_DATA_INTERVAL);
 
 		return () => clearInterval(interval);
 	}, [search, order, sensorTypes, favourites, threshold]);

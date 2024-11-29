@@ -11,7 +11,7 @@ export function Button({ title, variant = "filled", ...props }: ButtonProps) {
 				style={{
 					backgroundColor: variant === "outline" ? "transparent" : variant === "danger" ? "#f87171" : "#d4d4d8",
 					borderWidth: 1,
-					borderColor: variant === 'outline' ? '#020617' : variant === "danger" ? "#f87171" : "#d4d4d8",
+					borderColor: variant === "outline" ? "#020617" : variant === "danger" ? "#f87171" : "#d4d4d8",
 				}}
 				{...props}
 			>

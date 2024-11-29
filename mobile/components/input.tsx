@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { TextInput, View, StyleSheet } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 
 export function Input(props: InputProps) {
 	return (
@@ -19,7 +19,7 @@ type InputProps = Omit<ComponentProps<typeof TextInput>, "className">;
 const styles = StyleSheet.create({
 	inputs: {
 		borderWidth: 1,
-		borderColor: '#d1d5db',
+		borderColor: "#d1d5db",
 		paddingHorizontal: 20,
 	},
 });

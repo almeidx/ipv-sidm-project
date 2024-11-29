@@ -32,7 +32,7 @@ export function BasePage({ children, title, rightSide, centerContent }: PropsWit
 					: undefined),
 			}}
 		>
-			<View className="flex flex-row justify-between items-center" style={{ paddingHorizontal: 20 }}>
+			<View className="flex flex-row justify-between items-center" style={{ paddingHorizontal: -20 }}>
 				<TouchableOpacity onPress={handleLogoPress} activeOpacity={1}>
 					<Image source={require("../assets/images/logo-black.png")} style={{ width: 160, height: 160 }} />
 				</TouchableOpacity>

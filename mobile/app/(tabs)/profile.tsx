@@ -25,7 +25,6 @@ export default function Profile() {
 		async function fetchUser() {
 			try {
 				const { data } = await makeApiRequest<GetCurrentUserResult>("/users/@me", {
-					method: "GET",
 					failMessage: "Falha ao buscar dados do utilizador",
 				});
 

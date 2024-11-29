@@ -234,7 +234,6 @@ export async function getSensorsDataImpl({
 			});
 		}
 
-		// biome-ignore lint/style/noNonNullAssertion:
 		const sensor = sensorMap.get(row.id)!;
 		if (row.value !== null) {
 			sensor.sensorData.push({

@@ -16,7 +16,11 @@ export function addConnection(sensorId: number, connection: WebSocket) {
 
 	const now = new Date();
 
-	connections.set(sensorId, { connectedAt: now, lastPingAt: now, socket: connection });
+	connections.set(sensorId, {
+		connectedAt: now,
+		lastPingAt: now,
+		socket: connection,
+	});
 }
 
 export function killConnection(sensorId: number): void;
@@ -24,9 +28,10 @@ export function killConnection(socket: WebSocket): void;
 export function killConnection(arg: number | WebSocket) {
 	if (typeof arg === "number") {
 		killSensorConnection(arg);
-	} else {
-		killSocketConnection(arg);
+		return;
 	}
+
+	killSocketConnection(arg);
 }
 
 function killSensorConnection(sensorId: number) {

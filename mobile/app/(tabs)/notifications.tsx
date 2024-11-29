@@ -29,10 +29,6 @@ export default function Notifications() {
 		async function getNotifications() {
 			try {
 				const { data } = await makeApiRequest<GetNotificationsResult>("/notifications", {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-					},
 					failMessage: "Failed to fetch notifications",
 				});
 

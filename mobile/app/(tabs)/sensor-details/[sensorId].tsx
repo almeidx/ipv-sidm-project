@@ -7,11 +7,12 @@ import { LineChart } from "react-native-gifted-charts";
 import { toast } from "sonner-native";
 import { BasePage } from "../../../components/base-page";
 import type { GetSensorDataResult } from "../../../lib/api-types";
-import { CacheKey } from "../../../lib/cache";
+import { CacheKey, findOrCreate } from "../../../lib/cache";
 import { getSensorIcon } from "../../../lib/get-sensor-icon";
 import { makeApiRequest } from "../../../lib/make-api-request";
 
 const timeframes = ["1D", "1W", "1M", "3M", "6M", "1Y", "MAX"] as const;
+const FETCH_SENSOR_DATA_INTERVAL = 3 * 1_000;
 
 export default function SensorDetails() {
 	const { sensorId } = useGlobalSearchParams<{ sensorId: string }>();
@@ -22,7 +23,7 @@ export default function SensorDetails() {
 	const [selectedTimeframe, setSelectedTimeframe] = useState<(typeof timeframes)[number]>("1D");
 
 	useEffect(() => {
-		async function fetchSensorsData() {
+		async function getData() {
 			if (!sensorId) {
 				setIsLoading(false);
 				return;
@@ -30,21 +31,31 @@ export default function SensorDetails() {
 
 			setIsLoading(true);
 
-			try {
-				const { data } = await makeApiRequest<GetSensorDataResult>(`/sensors/${sensorId}/data`, {
-					query: {
-						timeframe: selectedTimeframe,
-					},
-				});
+			const data = await findOrCreate(
+				CacheKey.SensorData + sensorId + selectedTimeframe,
+				async () => {
+					try {
+						const { data } = await makeApiRequest<GetSensorDataResult>(`/sensors/${sensorId}/data`, {
+							query: {
+								timeframe: selectedTimeframe,
+							},
+						});
 
-				if (data) {
-					setSensorData(data.sensor);
-				}
-			} catch (error) {
-				console.error("Erro ao buscar dados do sensor:", error);
-			} finally {
-				setIsLoading(false);
+						if (data) {
+							return data.sensor;
+						}
+					} catch (error) {
+						console.error("Erro ao buscar dados do sensor:", error);
+					}
+				},
+				1,
+			);
+
+			if (data) {
+				setSensorData(data);
 			}
+
+			setIsLoading(false);
 		}
 
 		async function checkIfFavorite() {
@@ -58,8 +69,12 @@ export default function SensorDetails() {
 			setIsFavorite(!!isFavorite);
 		}
 
-		fetchSensorsData();
+		getData();
 		checkIfFavorite();
+
+		const interval = setInterval(getData, FETCH_SENSOR_DATA_INTERVAL);
+
+		return () => clearInterval(interval);
 	}, [sensorId, selectedTimeframe]);
 
 	async function handleFavoriteToggle() {
@@ -75,15 +90,16 @@ export default function SensorDetails() {
 				CacheKey.FavouriteSensors,
 				JSON.stringify(favouritesList ? [...favouritesList, sensorId] : [sensorId]),
 			);
-		} else {
-			toast.success("Sensor removido dos favoritos!");
+			return;
+		}
 
-			if (favouritesList) {
-				await AsyncStorage.setItem(
-					CacheKey.FavouriteSensors,
-					JSON.stringify(JSON.parse(favouritesList).filter((item: string) => item !== sensorId)),
-				);
-			}
+		toast.success("Sensor removido dos favoritos!");
+
+		if (favouritesList) {
+			await AsyncStorage.setItem(
+				CacheKey.FavouriteSensors,
+				JSON.stringify(JSON.parse(favouritesList).filter((item: string) => item !== sensorId)),
+			);
 		}
 	}
 

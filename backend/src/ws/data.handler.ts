@@ -68,10 +68,10 @@ function determineThresholdStatus(value: number, sensor: { minThreshold: number;
 }
 
 async function handleNotifications(sensorId: number, status: ThresholdStatus, value: number) {
-	if (status !== ThresholdStatus.Normal) {
-		console.warn("Threshold surpassed:", status === ThresholdStatus.Below ? "below" : "above");
-	} else {
+	if (status === ThresholdStatus.Normal) {
 		console.log("Value returned to normal range");
+	} else {
+		console.warn("Threshold surpassed:", status === ThresholdStatus.Below ? "below" : "above");
 	}
 
 	await createNotification(sensorId, status, value);

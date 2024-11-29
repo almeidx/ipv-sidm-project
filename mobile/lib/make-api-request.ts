@@ -35,6 +35,10 @@ export async function makeApiRequest<Result>(
 					await SecureStore.deleteItemAsync(CacheKey.AuthToken);
 					return null;
 				}
+
+				console.error(`Failed to fetch ${endpoint} (code: ${response.status}):`, data.message);
+				toast.error(data.message);
+				return { data: null, response };
 			}
 
 			console.error(`Failed to fetch ${endpoint} (code: ${response.status}):`, await response.text());
