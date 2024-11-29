@@ -22,6 +22,7 @@ export function BasePage({ children, title, rightSide, centerContent }: PropsWit
 	return (
 		<ScrollView
 			contentContainerStyle={{
+				paddingHorizontal: 16,
 				paddingBottom: 46,
 				...(centerContent
 					? {
@@ -53,7 +54,7 @@ export function BasePage({ children, title, rightSide, centerContent }: PropsWit
 			{centerContent ? (
 				children
 			) : (
-				<View className="flex flex-col flex-1 gap-4" style={{ paddingHorizontal: 20, marginTop: -50 }}>
+				<View className="flex flex-col flex-1 gap-4" style={{ marginTop: -50 }}>
 					{children}
 				</View>
 			)}

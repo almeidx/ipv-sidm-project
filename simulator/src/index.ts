@@ -4,7 +4,7 @@ import WebSocket from "ws";
 import { getDataset } from "./utils/get-dataset.ts";
 import { WebSocketMessageType } from "./utils/websocket-message-types.ts";
 
-assert(process.env.API_PORT, "API_PORT is required");
+//assert(process.env.API_PORT, "API_PORT is required");
 assert(process.env.SENSOR_ID, "SENSOR_ID is required");
 assert(process.env.SENSOR_TYPE_ID, "SENSOR_TYPE_ID is required");
 assert(process.env.SENSOR_TYPE_INDEX, "SENSOR_TYPE_INDEX is required");
@@ -28,7 +28,7 @@ let pingInterval: NodeJS.Timeout | null = null;
 function connect() {
 	cleanup();
 
-	ws = new WebSocket(`ws://localhost:${port}/ws`);
+	ws = new WebSocket(`wss://sidm-api.almeidx.dev/ws`);
 
 	ws.on("error", (error) => {
 		console.error("WebSocket error:", error);
