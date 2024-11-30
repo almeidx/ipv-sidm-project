@@ -1,5 +1,7 @@
+import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyCors } from "@fastify/cors";
 import { fastifyJwt } from "@fastify/jwt";
+import { fastifyRateLimit } from "@fastify/rate-limit";
 import { fastifySensible } from "@fastify/sensible";
 import { fastifyWebsocket } from "@fastify/websocket";
 import { fastify } from "fastify";
@@ -71,8 +73,23 @@ app.setErrorHandler((error, request, reply) => {
 	reply.send({ message: error.message });
 });
 
+await app.register(fastifyRateLimit, {
+	global: true,
+	max: 120,
+	timeWindow: "1 minute",
+});
+
+app.setNotFoundHandler({ preHandler: app.rateLimit({ max: 5, ban: 2, timeWindow: "1 minute" }) }, (_request, reply) => {
+	reply.statusCode = 404;
+	return { message: "Not found" };
+});
+
 await app.register(fastifySensible);
 await app.register(fastifyCors);
+
+// biome-ignore lint/suspicious/noExplicitAny:
+await app.register(fastifyAccepts as any);
+
 await app.register(fastifyJwt, { secret: env.JWT_SECRET });
 await app.register(fastifyWebsocket, {
 	options: {
@@ -112,6 +129,16 @@ app.setErrorHandler((err, req, reply) => {
 
 app.addHook("onResponse", (request, reply, done) => {
 	console.info("Request completed", request.method, request.url, reply.statusCode, prettyMs(reply.elapsedTime));
+	done();
+});
+
+app.addHook("preHandler", (request, _reply, done) => {
+	const accepted = request.accepts();
+
+	if (!accepted.type("application/json")) {
+		throw app.httpErrors.notAcceptable();
+	}
+
 	done();
 });
 
