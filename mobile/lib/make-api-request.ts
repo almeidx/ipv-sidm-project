@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { toast } from "sonner-native";
 import { CacheKey } from "./cache";
@@ -30,9 +31,10 @@ export async function makeApiRequest<Result>(
 		if (!response.ok) {
 			if (response.status === 401 && isJsonResponse) {
 				const data = await response.json();
-				if (data.message === "Authorization token expired") {
+				if (data.message === "Authorization token expired" || data.message === "Unauthorized") {
 					toast.error("Sessão expirada, por favor faça login novamente");
 					await SecureStore.deleteItemAsync(CacheKey.AuthToken);
+					router.push("/sign-in");
 					return null;
 				}
 

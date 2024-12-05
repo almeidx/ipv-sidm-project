@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Link, useRouter } from "expo-router";
+import { Link, usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
@@ -18,6 +18,7 @@ const FETCH_SENSORS_DATA_INTERVAL = 3 * 1_000;
 
 export default function Home() {
 	const router = useRouter();
+	const pathname = usePathname();
 
 	const [sensorsData, setSensorsData] = useState<GetSensorsDataResult["sensors"]>([]);
 	const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
@@ -84,13 +85,14 @@ export default function Home() {
 			}
 		}
 
-		loadFavorites();
-		getData();
+		if (pathname === "/") {
+			loadFavorites();
+			getData();
 
-		const interval = setInterval(getData, FETCH_SENSORS_DATA_INTERVAL);
-
-		return () => clearInterval(interval);
-	}, [search, order, sensorTypes, favourites, threshold]);
+			const interval = setInterval(getData, FETCH_SENSORS_DATA_INTERVAL);
+			return () => clearInterval(interval);
+		}
+	}, [pathname, search, order, sensorTypes, favourites, threshold]);
 
 	function handleSensorClick(sensorId: number) {
 		router.push(`/sensor-details/${sensorId}`);
