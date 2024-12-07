@@ -18,24 +18,7 @@ model User {
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  keys Key[]
-
   @@map("users")
-}
-
-model Key {
-  id         Int      @id @default(autoincrement())
-  key        String   @unique
-  userId     String   @map("user_id")
-  /// 1 - Client
-  /// 2 - Server
-  sourceType Int      @map("source_type")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@map("keys")
 }
 
 model SensorData {
