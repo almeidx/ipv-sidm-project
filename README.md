@@ -10,6 +10,11 @@ This project is structure in three main folders:
 - **mobile**: Interfaces with the API to provide user interaction and functionality.
 - **simulator**: Simulates sensors by connecting to the API and sending data.
 
+The datasets used are located in the `simulator/assets` folder.
+
+The database schema is located in the `backend/prisma` folder.
+There's a `schema.prisma` file that defines the database schema and a `ERD.svg` file that shows an Entity-Relationship Diagram.
+
 ## How to run
 
 ### Development mode
